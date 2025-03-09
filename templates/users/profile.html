@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Профиль</li>
+    </ol>
+</nav>
+
+<div class="profile-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-2 col-4 text-center">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" class="profile-avatar" alt="{{ user.username }}">
+            {% else %}
+                <img src="https://via.placeholder.com/100?text=Фото" class="profile-avatar" alt="{{ user.username }}">
+            {% endif %}
+        </div>
+        <div class="col-md-10 col-8">
+            <h1 class="mb-2">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="text-muted mb-1">{{ user.email }}</p>
+            {% if user.profile.phone %}
+                <p class="text-muted mb-1">{{ user.profile.phone }}</p>
+            {% endif %}
+            <a href="{% url 'users:profile_edit' %}" class="btn btn-outline-primary mt-2">
+                <i class="fas fa-edit"></i> Редактировать профиль
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Информация о пользователе</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Имя пользователя</th>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email</th>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Имя</th>
+                            <td>{{ user.first_name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Фамилия</th>
+                            <td>{{ user.last_name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Телефон</th>
+                            <td>{{ user.profile.phone|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Дата регистрации</th>
+                            <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Последний вход</th>
+                            <td>{{ user.last_login|date:"d.m.Y H:i"|default:"-" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Адресная информация</h5>
+            </div>
+            <div class="card-body">
+                {% if user.profile.address or user.profile.city %}
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Адрес</th>
+                                <td>{{ user.profile.address|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Город</th>
+                                <td>{{ user.profile.city|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Почтовый индекс</th>
+                                <td>{{ user.profile.postal_code|default:"-" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">Адресная информация не заполнена.</p>
+                    <a href="{% url 'users:profile_edit' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Добавить адрес
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Последние заказы</h5>
+        <a href="{% url 'orders:order_history' %}" class="btn btn-sm btn-outline-primary">Все заказы</a>
+    </div>
+    <div class="card-body">
+        {% if user.orders.exists %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>№ заказа</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Сумма</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in user.orders.all|slice:":5" %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.created|date:"d.m.Y H:i" }}</td>
+                                <td><span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                <td>{{ order.get_total_cost }} ₽</td>
+                                <td>
+                                    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">У вас пока нет заказов.</p>
+            <a href="{% url 'catalog:categories' %}" class="btn btn-primary">Перейти в каталог</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

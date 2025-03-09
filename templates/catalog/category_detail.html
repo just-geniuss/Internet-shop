@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:categories' %}">Категории</a></li>
+        {% if category.parent %}
+            <li class="breadcrumb-item"><a href="{{ category.parent.get_absolute_url }}">{{ category.parent.name }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>{{ category.name }}</h1>
+        {% if category.description %}
+            <p>{{ category.description }}</p>
+        {% endif %}
+    </div>
+    <div class="col-md-4 text-end">
+        <img src="{% if category.image %}{{ category.image.url }}{% else %}https://via.placeholder.com/150?text=Нет+фото{% endif %}" alt="{{ category.name }}" class="img-fluid" style="max-height: 150px;">
+    </div>
+</div>
+
+<!-- Подкатегории, если есть -->
+{% if subcategories %}
+    <h2 class="mb-3">Подкатегории</h2>
+    <div class="row mb-4">
+        {% for subcategory in subcategories %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card category-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ subcategory.name }}</h5>
+                        <div class="text-center mt-3">
+                            <a href="{{ subcategory.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Перейти</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<!-- Фильтры -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <!-- Фильтр по производителям -->
+                    <div class="mb-3">
+                        <h6>Производители</h6>
+                        {% for manufacturer in all_manufacturers %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="manufacturer" value="{{ manufacturer.id }}" id="manufacturer-{{ manufacturer.id }}" 
+                                    {% if manufacturer.id|stringformat:"i" in selected_manufacturers %}checked{% endif %}>
+                                <label class="form-check-label" for="manufacturer-{{ manufacturer.id }}">
+                                    {{ manufacturer.name }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Фильтр по цене -->
+                    <div class="mb-3">
+                        <h6>Цена</h6>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text">от</span>
+                            <input type="number" class="form-control" name="min_price" value="{{ min_price }}" min="0">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">до</span>
+                            <input type="number" class="form-control" name="max_price" value="{{ max_price }}" min="0">
+                        </div>
+                    </div>
+                    
+                    <!-- Сортировка -->
+                    <div class="mb-3">
+                        <h6>Сортировка</h6>
+                        <select class="form-select" name="sort">
+                            <option value="name" {% if sort == 'name' %}selected{% endif %}>По названию (А-Я)</option>
+                            <option value="price" {% if sort == 'price' %}selected{% endif %}>Сначала дешевле</option>
+                            <option value="-price" {% if sort == '-price' %}selected{% endif %}>Сначала дороже</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Применить</button>
+                    {% if min_price or max_price or selected_manufacturers %}
+                        <a href="{{ category.get_absolute_url }}" class="btn btn-outline-secondary w-100 mt-2">Сбросить</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Список товаров -->
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span>Найдено товаров: {{ products.count }}</span>
+        </div>
+        
+        <div class="row">
+            {% for product in products %}
+                <div class="col-lg-4 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="text-center pt-3">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/150?text=Нет+фото" class="card-img-top" alt="{{ product.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted mb-1">Артикул: {{ product.sku }}</p>
+                            <p class="card-text text-muted mb-1">Производитель: {{ product.manufacturer.name }}</p>
+                            
+                            <div class="mt-auto">
+                                <p class="card-text price mb-2">{{ product.price }} ₽</p>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary">Подробнее</a>
+                                    
+                                    <form action="{% url 'orders:add_to_cart' product.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        В данной категории пока нет товаров.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

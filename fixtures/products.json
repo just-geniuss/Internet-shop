@@ -1,0 +1,154 @@
+[
+  {
+    "model": "catalog.product",
+    "pk": 1,
+    "fields": {
+      "name": "Масляный фильтр BOSCH",
+      "slug": "oil-filter-bosch",
+      "sku": "BOS-OF-1234",
+      "category": 5,
+      "manufacturer": 1,
+      "description": "Высококачественный масляный фильтр BOSCH для легковых автомобилей. Обеспечивает надежную фильтрацию масла и защиту двигателя.",
+      "price": "850.00",
+      "stock": 25,
+      "available": true,
+      "created": "2023-08-20T12:00:00Z",
+      "updated": "2023-08-20T12:00:00Z",
+      "external_id": "oil-filter-bosch-1c",
+      "compatible_cars": [1, 2, 5]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 2,
+    "fields": {
+      "name": "Воздушный фильтр MANN-FILTER",
+      "slug": "air-filter-mann",
+      "sku": "MAN-AF-5678",
+      "category": 5,
+      "manufacturer": 3,
+      "description": "Воздушный фильтр MANN-FILTER для защиты двигателя от пыли и загрязнений. Высокая степень фильтрации и оптимальный воздушный поток.",
+      "price": "650.00",
+      "stock": 18,
+      "available": true,
+      "created": "2023-08-21T14:30:00Z",
+      "updated": "2023-08-21T14:30:00Z",
+      "external_id": "air-filter-mann-1c",
+      "compatible_cars": [1, 2, 3, 4]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 3,
+    "fields": {
+      "name": "Тормозные колодки TRW",
+      "slug": "brake-pads-trw",
+      "sku": "TRW-BP-9012",
+      "category": 7,
+      "manufacturer": 2,
+      "description": "Комплект тормозных колодок TRW с высокими показателями трения и износостойкости. Обеспечивают стабильное торможение в любых условиях.",
+      "price": "2500.00",
+      "stock": 12,
+      "available": true,
+      "created": "2023-09-05T09:15:00Z",
+      "updated": "2023-09-05T09:15:00Z",
+      "external_id": "brake-pads-trw-1c",
+      "compatible_cars": [5, 6]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 4,
+    "fields": {
+      "name": "Тормозной диск BOSCH",
+      "slug": "brake-disc-bosch",
+      "sku": "BOS-BD-3456",
+      "category": 8,
+      "manufacturer": 1,
+      "description": "Высококачественный тормозной диск BOSCH с оптимальным отводом тепла и стабильными характеристиками торможения.",
+      "price": "3200.00",
+      "stock": 8,
+      "available": true,
+      "created": "2023-09-10T11:45:00Z",
+      "updated": "2023-09-10T11:45:00Z",
+      "external_id": "brake-disc-bosch-1c",
+      "compatible_cars": [5, 6]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 5,
+    "fields": {
+      "name": "Моторное масло CASTROL Edge 5W-30",
+      "slug": "engine-oil-castrol-5w30",
+      "sku": "CAS-EO-7890",
+      "category": 6,
+      "manufacturer": 5,
+      "description": "Полностью синтетическое моторное масло CASTROL Edge с технологией Titanium FST для максимальной производительности и защиты двигателя. Объем: 4 литра.",
+      "price": "3800.00",
+      "stock": 30,
+      "available": true,
+      "created": "2023-10-01T10:00:00Z",
+      "updated": "2023-10-01T10:00:00Z",
+      "external_id": "engine-oil-castrol-5w30-1c",
+      "compatible_cars": [1, 2, 3, 4, 5, 6, 7, 8]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 6,
+    "fields": {
+      "name": "Свечи зажигания DENSO",
+      "slug": "spark-plugs-denso",
+      "sku": "DEN-SP-6789",
+      "category": 1,
+      "manufacturer": 4,
+      "description": "Комплект из 4 иридиевых свечей зажигания DENSO с улучшенными характеристиками искрообразования и длительным сроком службы.",
+      "price": "1800.00",
+      "stock": 15,
+      "available": true,
+      "created": "2023-10-15T16:20:00Z",
+      "updated": "2023-10-15T16:20:00Z",
+      "external_id": "spark-plugs-denso-1c",
+      "compatible_cars": [1, 2, 7, 8]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 7,
+    "fields": {
+      "name": "Фильтр салона VALEO",
+      "slug": "cabin-filter-valeo",
+      "sku": "VAL-CF-2345",
+      "category": 5,
+      "manufacturer": 6,
+      "description": "Угольный фильтр салона VALEO для эффективной очистки воздуха от пыли, пыльцы и неприятных запахов.",
+      "price": "750.00",
+      "stock": 22,
+      "available": true,
+      "created": "2023-11-05T08:30:00Z",
+      "updated": "2023-11-05T08:30:00Z",
+      "external_id": "cabin-filter-valeo-1c",
+      "compatible_cars": [3, 4]
+    }
+  },
+  {
+    "model": "catalog.product",
+    "pk": 8,
+    "fields": {
+      "name": "Аккумулятор BOSCH S4",
+      "slug": "battery-bosch-s4",
+      "sku": "BOS-BAT-8901",
+      "category": 4,
+      "manufacturer": 1,
+      "description": "Аккумуляторная батарея BOSCH S4 емкостью 60 Ач с высокими пусковыми токами и длительным сроком службы.",
+      "price": "7500.00",
+      "stock": 5,
+      "available": true,
+      "created": "2023-11-20T13:45:00Z",
+      "updated": "2023-11-20T13:45:00Z",
+      "external_id": "battery-bosch-s4-1c",
+      "compatible_cars": [1, 2, 3, 4, 5, 6, 7, 8]
+    }
+  }
+] 

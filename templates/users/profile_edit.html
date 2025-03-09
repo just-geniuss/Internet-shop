@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'users:profile' %}">Профиль</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Редактирование профиля</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">Редактирование профиля</h1>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Личная информация</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+                            <div class="form-text">Имя пользователя нельзя изменить</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email*</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ profile.phone }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Фотография профиля</label>
+                        <input class="form-control" type="file" id="avatar" name="avatar">
+                        {% if profile.avatar %}
+                            <div class="mt-2">
+                                <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" style="max-width: 100px; border-radius: 50%;" class="mt-2">
+                                <div class="form-check mt-1">
+                                    <input class="form-check-input" type="checkbox" id="delete_avatar" name="delete_avatar">
+                                    <label class="form-check-label" for="delete_avatar">
+                                        Удалить фото
+                                    </label>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card mt-4 mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Адресная информация</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Адрес</label>
+                                <input type="text" class="form-control" id="address" name="address" value="{{ profile.address }}">
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="city" class="form-label">Город</label>
+                                    <input type="text" class="form-control" id="city" name="city" value="{{ profile.city }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="postal_code" class="form-label">Почтовый индекс</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ profile.postal_code }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p>Для изменения пароля перейдите на <a href="#">страницу смены пароля</a>.</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,90 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": 1,
+    "fields": {
+      "name": "Двигатель",
+      "slug": "engine",
+      "description": "Запчасти для двигателя автомобиля",
+      "parent": null,
+      "external_id": "engine-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 2,
+    "fields": {
+      "name": "Тормозная система",
+      "slug": "brake-system",
+      "description": "Запчасти для тормозной системы",
+      "parent": null,
+      "external_id": "brake-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 3,
+    "fields": {
+      "name": "Подвеска",
+      "slug": "suspension",
+      "description": "Запчасти для подвески автомобиля",
+      "parent": null,
+      "external_id": "suspension-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 4,
+    "fields": {
+      "name": "Электрика",
+      "slug": "electrical",
+      "description": "Электрические компоненты автомобиля",
+      "parent": null,
+      "external_id": "electrical-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 5,
+    "fields": {
+      "name": "Фильтры",
+      "slug": "filters",
+      "description": "Фильтры для автомобиля",
+      "parent": 1,
+      "external_id": "filters-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 6,
+    "fields": {
+      "name": "Масла и жидкости",
+      "slug": "oils-fluids",
+      "description": "Масла и технические жидкости",
+      "parent": null,
+      "external_id": "oils-fluids-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 7,
+    "fields": {
+      "name": "Тормозные колодки",
+      "slug": "brake-pads",
+      "description": "Тормозные колодки для дисковых и барабанных тормозов",
+      "parent": 2,
+      "external_id": "brake-pads-1c"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 8,
+    "fields": {
+      "name": "Тормозные диски",
+      "slug": "brake-discs",
+      "description": "Тормозные диски для различных моделей автомобилей",
+      "parent": 2,
+      "external_id": "brake-discs-1c"
+    }
+  }
+] 

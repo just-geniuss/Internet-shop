@@ -1,0 +1,98 @@
+[
+  {
+    "model": "catalog.car",
+    "pk": 1,
+    "fields": {
+      "brand": "Toyota",
+      "model": "Camry",
+      "year_start": 2018,
+      "year_end": null,
+      "engine_type": "2.5L",
+      "external_id": "toyota-camry-2018-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 2,
+    "fields": {
+      "brand": "Toyota",
+      "model": "Corolla",
+      "year_start": 2019,
+      "year_end": null,
+      "engine_type": "1.6L",
+      "external_id": "toyota-corolla-2019-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 3,
+    "fields": {
+      "brand": "Volkswagen",
+      "model": "Golf",
+      "year_start": 2020,
+      "year_end": null,
+      "engine_type": "1.4L TSI",
+      "external_id": "vw-golf-2020-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 4,
+    "fields": {
+      "brand": "Volkswagen",
+      "model": "Passat",
+      "year_start": 2015,
+      "year_end": 2020,
+      "engine_type": "2.0L TDI",
+      "external_id": "vw-passat-2015-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 5,
+    "fields": {
+      "brand": "BMW",
+      "model": "3 Series",
+      "year_start": 2019,
+      "year_end": null,
+      "engine_type": "2.0L",
+      "external_id": "bmw-3-series-2019-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 6,
+    "fields": {
+      "brand": "Mercedes-Benz",
+      "model": "C-Class",
+      "year_start": 2021,
+      "year_end": null,
+      "engine_type": "2.0L",
+      "external_id": "mercedes-c-class-2021-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 7,
+    "fields": {
+      "brand": "Hyundai",
+      "model": "Sonata",
+      "year_start": 2020,
+      "year_end": null,
+      "engine_type": "2.5L",
+      "external_id": "hyundai-sonata-2020-1c"
+    }
+  },
+  {
+    "model": "catalog.car",
+    "pk": 8,
+    "fields": {
+      "brand": "Kia",
+      "model": "K5",
+      "year_start": 2021,
+      "year_end": null,
+      "engine_type": "2.5L",
+      "external_id": "kia-k5-2021-1c"
+    }
+  }
+] 

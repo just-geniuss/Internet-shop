@@ -1,0 +1,179 @@
+[
+  {
+    "model": "catalog.productattribute",
+    "pk": 1,
+    "fields": {
+      "name": "Вес"
+    }
+  },
+  {
+    "model": "catalog.productattribute",
+    "pk": 2,
+    "fields": {
+      "name": "Размер"
+    }
+  },
+  {
+    "model": "catalog.productattribute",
+    "pk": 3,
+    "fields": {
+      "name": "Материал"
+    }
+  },
+  {
+    "model": "catalog.productattribute",
+    "pk": 4,
+    "fields": {
+      "name": "Объем"
+    }
+  },
+  {
+    "model": "catalog.productattribute",
+    "pk": 5,
+    "fields": {
+      "name": "Тип"
+    }
+  },
+  {
+    "model": "catalog.productattribute",
+    "pk": 6,
+    "fields": {
+      "name": "Напряжение"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "attribute": 1,
+      "value": "150 гр"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 2,
+    "fields": {
+      "product": 1,
+      "attribute": 2,
+      "value": "85x65 мм"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 3,
+    "fields": {
+      "product": 1,
+      "attribute": 5,
+      "value": "Картриджный"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 4,
+    "fields": {
+      "product": 2,
+      "attribute": 1,
+      "value": "200 гр"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 5,
+    "fields": {
+      "product": 2,
+      "attribute": 2,
+      "value": "235x195 мм"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 6,
+    "fields": {
+      "product": 3,
+      "attribute": 1,
+      "value": "950 гр"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 7,
+    "fields": {
+      "product": 3,
+      "attribute": 3,
+      "value": "Керамический компаунд"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 8,
+    "fields": {
+      "product": 4,
+      "attribute": 1,
+      "value": "4.5 кг"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 9,
+    "fields": {
+      "product": 4,
+      "attribute": 2,
+      "value": "Диаметр 280 мм"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 10,
+    "fields": {
+      "product": 5,
+      "attribute": 4,
+      "value": "4 литра"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 11,
+    "fields": {
+      "product": 5,
+      "attribute": 5,
+      "value": "Синтетическое"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 12,
+    "fields": {
+      "product": 6,
+      "attribute": 5,
+      "value": "Иридиевые"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 13,
+    "fields": {
+      "product": 7,
+      "attribute": 5,
+      "value": "Угольный"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 14,
+    "fields": {
+      "product": 8,
+      "attribute": 4,
+      "value": "60 Ач"
+    }
+  },
+  {
+    "model": "catalog.productattributevalue",
+    "pk": 15,
+    "fields": {
+      "product": 8,
+      "attribute": 6,
+      "value": "12 В"
+    }
+  }
+] 

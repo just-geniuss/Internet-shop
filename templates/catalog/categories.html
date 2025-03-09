@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Категории</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">Все категории автозапчастей</h1>
+
+<div class="row">
+    {% for category in categories %}
+        <div class="col-md-4 col-sm-6 mb-4">
+            <div class="card category-card h-100">
+                <div class="text-center pt-3">
+                    {% if category.image %}
+                        <img src="{{ category.image.url }}" class="category-image" alt="{{ category.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/150?text=Нет+фото" class="category-image" alt="{{ category.name }}">
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{ category.name }}</h5>
+                    {% if category.description %}
+                        <p class="card-text">{{ category.description|truncatechars:100 }}</p>
+                    {% endif %}
+                    
+                    {% if category.children.exists %}
+                        <div class="mt-3">
+                            <strong>Подкатегории:</strong>
+                            <ul class="list-unstyled">
+                                {% for subcategory in category.children.all|slice:":5" %}
+                                    <li><a href="{{ subcategory.get_absolute_url }}">{{ subcategory.name }}</a></li>
+                                {% endfor %}
+                                {% if category.children.count > 5 %}
+                                    <li><a href="{{ category.get_absolute_url }}">Все подкатегории...</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ category.get_absolute_url }}" class="btn btn-outline-primary">Перейти в раздел</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Категории еще не добавлены.
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %} 

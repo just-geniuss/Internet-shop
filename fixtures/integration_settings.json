@@ -1,0 +1,75 @@
+[
+  {
+    "model": "integration_1c.integrationsettings",
+    "pk": 1,
+    "fields": {
+      "connection_string": "http://example.com/1c/exchange",
+      "username": "admin_1c",
+      "password": "secure_password",
+      "enabled": true,
+      "last_sync": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "integration_1c.syncentity",
+    "pk": 1,
+    "fields": {
+      "name": "Товары",
+      "entity_type": "product",
+      "is_active": true,
+      "last_sync": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "integration_1c.syncentity",
+    "pk": 2,
+    "fields": {
+      "name": "Категории",
+      "entity_type": "category",
+      "is_active": true,
+      "last_sync": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "integration_1c.syncentity",
+    "pk": 3,
+    "fields": {
+      "name": "Производители",
+      "entity_type": "manufacturer",
+      "is_active": true,
+      "last_sync": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "integration_1c.syncentity",
+    "pk": 4,
+    "fields": {
+      "name": "Заказы",
+      "entity_type": "order",
+      "is_active": true,
+      "last_sync": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "integration_1c.synclog",
+    "pk": 1,
+    "fields": {
+      "sync_type": "import",
+      "status": "success",
+      "start_time": "2023-12-01T09:30:00Z",
+      "end_time": "2023-12-01T10:00:00Z",
+      "details": "Импортировано: 15 категорий, 120 товаров, 8 производителей"
+    }
+  },
+  {
+    "model": "integration_1c.synclog",
+    "pk": 2,
+    "fields": {
+      "sync_type": "export",
+      "status": "success",
+      "start_time": "2023-12-01T10:05:00Z",
+      "end_time": "2023-12-01T10:15:00Z",
+      "details": "Экспортировано: 5 заказов"
+    }
+  }
+] 

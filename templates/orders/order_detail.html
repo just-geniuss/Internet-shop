@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'users:profile' %}">Профиль</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'orders:order_history' %}">История заказов</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Заказ #{{ order.id }}</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">Заказ #{{ order.id }}</h1>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-muted">Создан: {{ order.created|date:"d.m.Y H:i" }}</span>
+                {% if order.updated != order.created %}
+                    <span class="text-muted ms-3">Обновлен: {{ order.updated|date:"d.m.Y H:i" }}</span>
+                {% endif %}
+            </div>
+            <div>
+                <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Информация о заказе</h5>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Статус заказа</th>
+                            <td>{{ order.get_status_display }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Способ оплаты</th>
+                            <td>{{ order.get_payment_method_display }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Статус оплаты</th>
+                            <td>{% if order.payment_completed %}Оплачено{% else %}Не оплачено{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Сумма заказа</th>
+                            <td>{{ order.get_total_cost }} ₽</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                {% if order.note %}
+                    <h5 class="mt-4">Комментарий к заказу</h5>
+                    <p>{{ order.note }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <h5>Информация о доставке</h5>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Получатель</th>
+                            <td>{{ order.first_name }} {{ order.last_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email</th>
+                            <td>{{ order.email }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Телефон</th>
+                            <td>{{ order.phone }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Адрес</th>
+                            <td>{{ order.address }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Город</th>
+                            <td>{{ order.city }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Почтовый индекс</th>
+                            <td>{{ order.postal_code }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Товары в заказе</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Изображение</th>
+                        <th>Наименование</th>
+                        <th>Артикул</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                        <tr>
+                            <td style="width: 80px;">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" class="img-thumbnail" alt="{{ item.product.name }}" style="max-width: 60px;">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/60?text=Нет+фото" class="img-thumbnail" alt="{{ item.product.name }}">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                            </td>
+                            <td>{{ item.product.sku }}</td>
+                            <td>{{ item.price }} ₽</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.get_cost }} ₽</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-end">Итого:</th>
+                        <th>{{ order.get_total_cost }} ₽</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between">
+    <a href="{% url 'orders:order_history' %}" class="btn btn-outline-secondary">← Назад к истории заказов</a>
+    
+    {% if order.status == 'new' %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+            Отменить заказ
+        </button>
+        
+        <!-- Модальное окно для подтверждения отмены заказа -->
+        <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelOrderModalLabel">Подтверждение отмены</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите отменить заказ #{{ order.id }}?</p>
+                        <p class="text-danger">Это действие нельзя будет отменить.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <form action="#" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel">
+                            <button type="submit" class="btn btn-danger">Да, отменить заказ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,68 @@
+[
+  {
+    "model": "catalog.manufacturer",
+    "pk": 1,
+    "fields": {
+      "name": "BOSCH",
+      "slug": "bosch",
+      "description": "Немецкий производитель автомобильных запчастей и электроники",
+      "country": "Германия",
+      "external_id": "bosch-1c"
+    }
+  },
+  {
+    "model": "catalog.manufacturer",
+    "pk": 2,
+    "fields": {
+      "name": "TRW",
+      "slug": "trw",
+      "description": "Американский производитель, специализирующийся на тормозных системах",
+      "country": "США",
+      "external_id": "trw-1c"
+    }
+  },
+  {
+    "model": "catalog.manufacturer",
+    "pk": 3,
+    "fields": {
+      "name": "MANN-FILTER",
+      "slug": "mann-filter",
+      "description": "Производитель высококачественных фильтров для автомобилей",
+      "country": "Германия",
+      "external_id": "mann-filter-1c"
+    }
+  },
+  {
+    "model": "catalog.manufacturer",
+    "pk": 4,
+    "fields": {
+      "name": "DENSO",
+      "slug": "denso",
+      "description": "Японский производитель автомобильных компонентов и запчастей",
+      "country": "Япония",
+      "external_id": "denso-1c"
+    }
+  },
+  {
+    "model": "catalog.manufacturer",
+    "pk": 5,
+    "fields": {
+      "name": "CASTROL",
+      "slug": "castrol",
+      "description": "Британский производитель смазочных материалов",
+      "country": "Великобритания",
+      "external_id": "castrol-1c"
+    }
+  },
+  {
+    "model": "catalog.manufacturer",
+    "pk": 6,
+    "fields": {
+      "name": "VALEO",
+      "slug": "valeo",
+      "description": "Французский производитель автомобильных компонентов",
+      "country": "Франция",
+      "external_id": "valeo-1c"
+    }
+  }
+] 

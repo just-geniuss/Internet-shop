@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'orders:cart' %}">Корзина</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Оформление заказа</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">Оформление заказа</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Контактная информация</h5>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'orders:checkout' %}" method="post" class="order-form">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">Имя*</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ initial.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Фамилия*</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ initial.last_name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email*</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ initial.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Телефон*</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ initial.phone }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес доставки*</label>
+                        <input type="text" class="form-control" id="address" name="address" value="{{ initial.address }}" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Город*</label>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ initial.city }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="postal_code" class="form-label">Почтовый индекс*</label>
+                            <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ initial.postal_code }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4 mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Способ оплаты</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_cash" value="cash" checked>
+                                <label class="form-check-label" for="payment_cash">
+                                    <i class="far fa-money-bill-alt me-2"></i> Наличными при получении
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_card" value="card">
+                                <label class="form-check-label" for="payment_card">
+                                    <i class="far fa-credit-card me-2"></i> Картой при получении
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payment_online" value="online">
+                                <label class="form-check-label" for="payment_online">
+                                    <i class="fas fa-credit-card me-2"></i> Онлайн оплата
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Комментарий к заказу</label>
+                        <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="agree" required>
+                        <label class="form-check-label" for="agree">
+                            Я согласен с условиями <a href="#">пользовательского соглашения</a> и <a href="#">политикой конфиденциальности</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg">Оформить заказ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card order-summary">
+            <div class="card-header">
+                <h5 class="mb-0">Ваш заказ</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Товары ({{ cart_items.count }})</h6>
+                    <ul class="list-unstyled">
+                        {% for item in cart_items %}
+                            <li class="d-flex justify-content-between mb-2">
+                                <span>{{ item.product.name }} x {{ item.quantity }}</span>
+                                <span>{{ item.get_cost }} ₽</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Сумма заказа:</span>
+                    <span>{{ cart.get_total_cost }} ₽</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Доставка:</span>
+                    <span>0 ₽</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Итого:</span>
+                    <span class="fw-bold cart-total">{{ cart.get_total_cost }} ₽</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

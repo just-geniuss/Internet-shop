@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:categories' %}">Категории</a></li>
+        <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+</nav>
+
+<div class="row mb-5">
+    <div class="col-md-5 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="product-image img-fluid" alt="{{ product.name }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/400?text=Нет+фото" class="product-image img-fluid" alt="{{ product.name }}">
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Дополнительные изображения, если есть -->
+        {% if product.images.exists %}
+            <div class="row mt-3">
+                {% for image in product.images.all %}
+                    <div class="col-3 mb-3">
+                        <img src="{{ image.image.url }}" class="img-thumbnail" alt="{{ image.alt|default:product.name }}">
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card product-info">
+            <div class="card-body">
+                <h1 class="card-title mb-3">{{ product.name }}</h1>
+                
+                <p class="product-sku">Артикул: {{ product.sku }}</p>
+                
+                <div class="mb-3">
+                    <span class="me-2">Производитель:</span>
+                    <span class="badge bg-secondary">{{ product.manufacturer.name }}</span>
+                    {% if product.manufacturer.country %}
+                        <span class="badge bg-light text-dark">{{ product.manufacturer.country }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="product-price mb-4">{{ product.price }} ₽</div>
+                
+                <div class="mb-4">
+                    {% if product.stock > 10 %}
+                        <p class="product-stock stock-available"><i class="fas fa-check-circle"></i> В наличии (более 10 шт.)</p>
+                    {% elif product.stock > 0 %}
+                        <p class="product-stock stock-low"><i class="fas fa-exclamation-circle"></i> Осталось {{ product.stock }} шт.</p>
+                    {% else %}
+                        <p class="product-stock stock-not-available"><i class="fas fa-times-circle"></i> Нет в наличии</p>
+                    {% endif %}
+                </div>
+                
+                {% if product.stock > 0 %}
+                    <form action="{% url 'orders:add_to_cart' product.id %}" method="post" class="mb-4">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4 col-5">
+                                <div class="input-group">
+                                    <span class="input-group-text">Кол-во</span>
+                                    <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}">
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-7">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-shopping-cart me-2"></i> В корзину
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+                
+                <hr>
+                
+                <!-- Атрибуты товара, если есть -->
+                {% if product.attribute_values.exists %}
+                    <h5 class="mt-4 mb-3">Характеристики</h5>
+                    <table class="table table-striped">
+                        <tbody>
+                            {% for attr_value in product.attribute_values.all %}
+                                <tr>
+                                    <th scope="row">{{ attr_value.attribute.name }}</th>
+                                    <td>{{ attr_value.value }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+                
+                <!-- Совместимые автомобили, если указаны -->
+                {% if product.compatible_cars.exists %}
+                    <h5 class="mt-4 mb-3">Совместимость с автомобилями</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Марка</th>
+                                    <th>Модель</th>
+                                    <th>Годы выпуска</th>
+                                    <th>Двигатель</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for car in product.compatible_cars.all %}
+                                    <tr>
+                                        <td>{{ car.brand }}</td>
+                                        <td>{{ car.model }}</td>
+                                        <td>{{ car.year_start }}{% if car.year_end %} - {{ car.year_end }}{% else %} - н.в.{% endif %}</td>
+                                        <td>{{ car.engine_type|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                
+                <!-- Описание товара -->
+                {% if product.description %}
+                    <h5 class="mt-4 mb-3">Описание</h5>
+                    <div class="product-description">
+                        {{ product.description|linebreaks }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Похожие товары -->
+{% if related_products %}
+    <h2 class="mb-4">Похожие товары</h2>
+    <div class="row">
+        {% for prod in related_products %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100">
+                    <div class="text-center pt-3">
+                        {% if prod.image %}
+                            <img src="{{ prod.image.url }}" class="card-img-top" alt="{{ prod.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/150?text=Нет+фото" class="card-img-top" alt="{{ prod.name }}">
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ prod.name }}</h5>
+                        <p class="card-text text-muted">Артикул: {{ prod.sku }}</p>
+                        <p class="card-text price mt-auto">{{ prod.price }} ₽</p>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ prod.get_absolute_url }}" class="btn btn-outline-primary">Подробнее</a>
+                            <form action="{% url 'orders:add_to_cart' prod.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="1">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %} 
