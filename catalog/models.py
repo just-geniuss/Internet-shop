@@ -1,6 +1,6 @@
 from django.db import models
 from django.urls import reverse
-from django.core.validators import validate_file_extension, validate_file_size
+from DjangoProject.validators import validate_file_extension, validate_file_size
 
 
 class Category(models.Model):
@@ -31,7 +31,8 @@ class Manufacturer(models.Model):
     name = models.CharField('Название', max_length=100)
     slug = models.SlugField('URL', max_length=100, unique=True)
     description = models.TextField('Описание', blank=True)
-    logo = models.ImageField('Логотип', upload_to='manufacturers/', blank=True)
+    logo = models.ImageField('Логотип', upload_to='manufacturers/', blank=True,
+                           validators=[validate_file_extension, validate_file_size])
     country = models.CharField('Страна', max_length=50, blank=True)
     external_id = models.CharField('Внешний ID (1C)', max_length=100, blank=True, null=True)
     
@@ -77,7 +78,8 @@ class Product(models.Model):
     available = models.BooleanField('Доступен', default=True)
     created = models.DateTimeField('Создан', auto_now_add=True)
     updated = models.DateTimeField('Обновлен', auto_now=True)
-    image = models.ImageField('Изображение', upload_to='products/', blank=True)
+    image = models.ImageField('Изображение', upload_to='products/', blank=True,
+                            validators=[validate_file_extension, validate_file_size])
     compatible_cars = models.ManyToManyField(Car, blank=True, verbose_name='Совместимые автомобили')
     external_id = models.CharField('Внешний ID (1C)', max_length=100, blank=True, null=True)
     is_visible = models.BooleanField('Отображать на сайте', default=True, help_text='Если отключено, товар не будет отображаться на сайте')
@@ -101,7 +103,8 @@ class ProductImage(models.Model):
     """Модель дополнительных изображений автозапчасти"""
     product = models.ForeignKey(Product, on_delete=models.CASCADE, 
                                related_name='images', verbose_name='Товар')
-    image = models.ImageField('Изображение', upload_to='products/additional/')
+    image = models.ImageField('Изображение', upload_to='products/additional/',
+                            validators=[validate_file_extension, validate_file_size])
     alt = models.CharField('Альтернативный текст', max_length=200, blank=True)
     
     class Meta:
