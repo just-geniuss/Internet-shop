@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.core.validators import validate_file_extension, validate_file_size
 
 
 class Category(models.Model):
@@ -7,7 +8,8 @@ class Category(models.Model):
     name = models.CharField('Название', max_length=100)
     slug = models.SlugField('URL', max_length=100, unique=True)
     description = models.TextField('Описание', blank=True)
-    image = models.ImageField('Изображение', upload_to='categories/', blank=True)
+    image = models.ImageField('Изображение', upload_to='categories/', blank=True,
+                            validators=[validate_file_extension, validate_file_size])
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
                                related_name='children', verbose_name='Родительская категория')
     external_id = models.CharField('Внешний ID (1C)', max_length=100, blank=True, null=True)
@@ -78,6 +80,7 @@ class Product(models.Model):
     image = models.ImageField('Изображение', upload_to='products/', blank=True)
     compatible_cars = models.ManyToManyField(Car, blank=True, verbose_name='Совместимые автомобили')
     external_id = models.CharField('Внешний ID (1C)', max_length=100, blank=True, null=True)
+    is_visible = models.BooleanField('Отображать на сайте', default=True, help_text='Если отключено, товар не будет отображаться на сайте')
     
     class Meta:
         verbose_name = 'Товар'

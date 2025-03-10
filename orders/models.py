@@ -22,6 +22,11 @@ class Order(models.Model):
         ('online', 'Онлайн оплата'),
     )
     
+    CLIENT_TYPE_CHOICES = (
+        ('individual', 'Физическое лицо'),
+        ('business', 'Юридическое лицо'),
+    )
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, 
                            related_name='orders', verbose_name='Пользователь')
     first_name = models.CharField('Имя', max_length=50)
@@ -38,6 +43,11 @@ class Order(models.Model):
     payment_completed = models.BooleanField('Оплачено', default=False)
     note = models.TextField('Примечание', blank=True)
     external_id = models.CharField('Внешний ID (1C)', max_length=100, blank=True, null=True)
+    
+    # Новые поля для разделения типов клиентов
+    client_type = models.CharField('Тип клиента', max_length=20, choices=CLIENT_TYPE_CHOICES, default='individual')
+    company_name = models.CharField('Название компании', max_length=100, blank=True)
+    inn = models.CharField('ИНН', max_length=12, blank=True)
     
     class Meta:
         verbose_name = 'Заказ'

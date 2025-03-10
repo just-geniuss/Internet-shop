@@ -81,7 +81,7 @@ def remove_from_cart(request, item_id):
     return redirect('orders:cart')
 
 
-@login_required
+@login_required(login_url='/users/register/')
 def checkout(request):
     """Оформление заказа"""
     cart = get_cart(request)
@@ -106,19 +106,24 @@ def checkout(request):
         }
     
     if request.method == 'POST':
-        # Здесь будет обработка формы заказа
-        # В реальном проекте следует использовать Django Forms
+        # Получаем тип клиента
+        client_type = request.POST.get('client_type', 'individual')
+        
+        # Создаем заказ с учетом типа клиента
         order = Order.objects.create(
             user=request.user,
             first_name=request.POST.get('first_name'),
             last_name=request.POST.get('last_name'),
             email=request.POST.get('email'),
             phone=request.POST.get('phone'),
-            address=request.POST.get('address'),
+            address=request.POST.get('address') if client_type == 'business' else 'п. Куликовский, ул. Придорожная, дом 1С2',
             city=request.POST.get('city'),
             postal_code=request.POST.get('postal_code'),
             payment_method=request.POST.get('payment_method'),
-            note=request.POST.get('note', '')
+            note=request.POST.get('note', ''),
+            client_type=client_type,
+            company_name=request.POST.get('company_name', '') if client_type == 'business' else '',
+            inn=request.POST.get('inn', '') if client_type == 'business' else '',
         )
         
         # Создание элементов заказа из корзины

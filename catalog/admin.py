@@ -33,12 +33,21 @@ class ProductAttributeValueInline(admin.TabularInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'sku', 'category', 'manufacturer', 'price', 'stock', 'available', 'created', 'updated']
-    list_filter = ['available', 'created', 'updated', 'category', 'manufacturer']
-    list_editable = ['price', 'stock', 'available']
+    list_display = ['name', 'sku', 'category', 'manufacturer', 'price', 'stock', 'available', 'is_visible', 'created', 'updated']
+    list_filter = ['available', 'is_visible', 'created', 'updated', 'category', 'manufacturer']
+    list_editable = ['price', 'stock', 'available', 'is_visible']
     search_fields = ['name', 'sku', 'external_id']
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ProductImageInline, ProductAttributeValueInline]
+    actions = ['make_visible', 'make_invisible']
+    
+    def make_visible(self, request, queryset):
+        queryset.update(is_visible=True)
+    make_visible.short_description = "Показывать выбранные товары на сайте"
+    
+    def make_invisible(self, request, queryset):
+        queryset.update(is_visible=False)
+    make_invisible.short_description = "Скрыть выбранные товары с сайта"
 
 
 class ProductAttributeAdmin(admin.ModelAdmin):

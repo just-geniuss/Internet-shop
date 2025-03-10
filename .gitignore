@@ -1,7 +1,7 @@
 # created by virtualenv automatically
 .venv/bin
 
-# Python
+# Python кеш и временные файлы
 __pycache__/
 *.py[cod]
 *$py.class
@@ -23,24 +23,9 @@ var/
 .installed.cfg
 *.egg
 
-# Django
-*.log
+# Локальные настройки и логи
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Виртуальное окружение
-venv/
-ENV/
-env/
-.env
-
-# Медиа и статические файлы в продакшене
-/media/
-/static/
-!/static/css/
-!/static/js/
-!/static/img/
+*.log
 
 # Файлы IDE
 .idea/
@@ -55,14 +40,19 @@ env/
 *~
 *.bak
 
-# Секретные данные
-.env
+# Виртуальное окружение
+venv/
+ENV/
+env/
+.venv/
+
+# Секретные данные и настройки
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Файлы кэша Pytest
+# Файлы кэша тестов
 .pytest_cache/
 .coverage
 htmlcov/
@@ -73,11 +63,26 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# Файлы миграций (опционально)
-# */migrations/*
-# !*/migrations/__init__.py
-
 # Файлы кэша и сессий
 .cache/
 .sass-cache/
 sessions/
+
+# Сохраняем БД SQLite для настроек и товаров
+# db.sqlite3
+# db.sqlite3-journal
+
+# Сохраняем все медиафайлы
+# /media/
+
+# Сохраняем статические файлы
+# /static/
+
+# Сохраняем файл .env для общих настроек, но исключаем SECRET_KEY и пароли
+# Создайте отдельный файл .env.example с шаблоном настроек
+
+# Сохраняем все миграции для корректной работы БД
+# */migrations/
+
+# Специальный файл для хранения информации о суперпользователе - исключаем
+superuser_info.json

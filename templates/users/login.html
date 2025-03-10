@@ -32,7 +32,7 @@
                 </form>
                 
                 <div class="mt-3 text-center">
-                    <p>Еще нет аккаунта? <a href="{% url 'users:register' %}">Зарегистрироваться</a></p>
+                    <p>Еще нет аккаунта? <a href="{% url 'users:register' %}{% if next %}?next={{ next }}{% endif %}">Зарегистрироваться</a></p>
                     <p><a href="#">Забыли пароль?</a></p>
                 </div>
             </div>

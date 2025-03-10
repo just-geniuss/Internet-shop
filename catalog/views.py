@@ -6,14 +6,14 @@ from .models import Category, Product, Manufacturer
 def index(request):
     """Главная страница каталога"""
     categories = Category.objects.filter(parent=None)[:6]
-    featured_products = Product.objects.filter(available=True).order_by('-created')[:8]
+    featured_products = Product.objects.filter(available=True, is_visible=True).order_by('-created')[:8]
     
     context = {
         'title': 'Интернет-магазин автозапчастей',
         'categories': categories,
-        'featured_products': featured_products,
+        'products': featured_products,
     }
-    return render(request, 'catalog/index.html', context)
+    return render(request, 'index.html', context)
 
 
 def categories(request):
@@ -30,13 +30,12 @@ def categories(request):
 def category_detail(request, category_id):
     """Отображение конкретной категории и её товаров"""
     category = get_object_or_404(Category, id=category_id)
-    subcategories = category.children.all()
-    products = category.products.filter(available=True)
+    products = category.products.filter(available=True, is_visible=True)
     
     # Фильтрация
-    manufacturers = request.GET.getlist('manufacturer')
-    if manufacturers:
-        products = products.filter(manufacturer__id__in=manufacturers)
+    manufacturer_id = request.GET.get('manufacturer')
+    if manufacturer_id:
+        products = products.filter(manufacturer__id=manufacturer_id)
     
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
@@ -47,34 +46,36 @@ def category_detail(request, category_id):
         products = products.filter(price__lte=max_price)
     
     # Сортировка
-    sort = request.GET.get('sort', 'name')
-    if sort == 'price':
-        products = products.order_by('price')
-    elif sort == '-price':
-        products = products.order_by('-price')
-    else:
-        products = products.order_by('name')
+    sort_by = request.GET.get('sort_by', 'name')
+    products = products.order_by(sort_by)
     
-    all_manufacturers = Manufacturer.objects.filter(products__category=category).distinct()
+    # Получаем всех производителей для фильтра
+    manufacturers = Manufacturer.objects.filter(
+        products__category=category, 
+        products__is_visible=True
+    ).distinct()
     
     context = {
         'title': category.name,
         'category': category,
-        'subcategories': subcategories,
         'products': products,
-        'all_manufacturers': all_manufacturers,
-        'selected_manufacturers': manufacturers,
+        'manufacturers': manufacturers,
+        'selected_manufacturer': manufacturer_id,
         'min_price': min_price,
         'max_price': max_price,
-        'sort': sort,
+        'sort_by': sort_by,
     }
     return render(request, 'catalog/category_detail.html', context)
 
 
 def product_detail(request, product_id):
     """Детальная информация о товаре"""
-    product = get_object_or_404(Product, id=product_id, available=True)
-    related_products = Product.objects.filter(category=product.category).exclude(id=product.id)[:4]
+    product = get_object_or_404(Product, id=product_id, available=True, is_visible=True)
+    related_products = Product.objects.filter(
+        category=product.category, 
+        available=True, 
+        is_visible=True
+    ).exclude(id=product.id)[:4]
     
     context = {
         'title': product.name,
@@ -94,7 +95,7 @@ def search(request):
             Q(name__icontains=query) | 
             Q(description__icontains=query) | 
             Q(sku__icontains=query)
-        ).filter(available=True)
+        ).filter(available=True, is_visible=True)
     
     context = {
         'title': f'Поиск: {query}',

@@ -28,8 +28,64 @@ INTEGRATION_1C_TOKEN = 'your-secure-token-for-1c-integration'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# В продакшене переключить на False и указать реальные домены
+# DEBUG = False
+# ALLOWED_HOSTS = ['example.com', 'www.example.com']
+
 ALLOWED_HOSTS = []
 
+# Настройки безопасности
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'  # Защита от clickjacking
+
+# Настройки для HTTPS (активировать в продакшене)
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+# SESSION_COOKIE_SAMESITE = 'Lax'
+# SECURE_SSL_REDIRECT = True
+# SECURE_HSTS_SECONDS = 31536000  # 1 год
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+
+# Настройки для защиты от SQL-инъекций
+# Использовать параметризованные запросы вместо raw SQL
+
+# Более сложные требования к паролям
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'user_attributes': ('username', 'email', 'first_name', 'last_name'),
+            'max_similarity': 0.7,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 10,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# Улучшенные хеширования паролей
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+# Максимальное количество попыток входа (используется с django-axes)
+# AXES_FAILURE_LIMIT = 5
+# AXES_COOLOFF_TIME = 1  # 1 час
 
 # Application definition
 
@@ -55,6 +111,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'DjangoProject.middleware.SecurityHeadersMiddleware',
+    'DjangoProject.middleware.XSSProtectionMiddleware',
+    'DjangoProject.middleware.RateLimitMiddleware',
 ]
 
 ROOT_URLCONF = 'DjangoProject.urls'
@@ -71,6 +130,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'integration_1c.context_processors.pending_imports_count',
             ],
         },
     },
@@ -100,25 +160,6 @@ DATABASES = {
 #         'PORT': '5432',
 #     }
 # }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 
 # Internationalization

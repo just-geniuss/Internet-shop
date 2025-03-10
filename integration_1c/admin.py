@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import IntegrationSettings, SyncLog, SyncEntity
+from .models import IntegrationSettings, SyncLog, SyncEntity, ImportSetting, PendingImport
 
 
 class IntegrationSettingsAdmin(admin.ModelAdmin):
@@ -23,6 +23,40 @@ class SyncEntityAdmin(admin.ModelAdmin):
     readonly_fields = ['last_sync']
 
 
+class ImportSettingAdmin(admin.ModelAdmin):
+    list_display = ['default_visibility', 'allow_price_edit', 'allow_category_edit']
+    fieldsets = (
+        ('Общие настройки', {
+            'fields': ('default_category', 'default_visibility')
+        }),
+        ('Расширенные настройки', {
+            'fields': ('allow_price_edit', 'allow_category_edit')
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Разрешаем создать только один объект настроек
+        return ImportSetting.objects.count() == 0
+
+
+class PendingImportAdmin(admin.ModelAdmin):
+    list_display = ['get_product_name', 'external_id', 'status', 'created', 'updated']
+    list_filter = ['status', 'created', 'updated']
+    search_fields = ['external_id', 'data']
+    readonly_fields = ['external_id', 'data', 'created', 'updated']
+    actions = ['mark_as_imported', 'mark_as_rejected']
+    
+    def mark_as_imported(self, request, queryset):
+        queryset.update(status='imported')
+    mark_as_imported.short_description = "Отметить как импортированные"
+    
+    def mark_as_rejected(self, request, queryset):
+        queryset.update(status='rejected')
+    mark_as_rejected.short_description = "Отметить как отклоненные"
+
+
 admin.site.register(IntegrationSettings, IntegrationSettingsAdmin)
 admin.site.register(SyncLog, SyncLogAdmin)
 admin.site.register(SyncEntity, SyncEntityAdmin)
+admin.site.register(ImportSetting, ImportSettingAdmin)
+admin.site.register(PendingImport, PendingImportAdmin)

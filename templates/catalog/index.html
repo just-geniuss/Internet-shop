@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!-- Основной слайдер -->
 <div class="row mb-4">
     <div class="col-12">
         <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -9,26 +10,29 @@
                 <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
                 <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
             </div>
-            <div class="carousel-inner">
+            <div class="carousel-inner rounded">
                 <div class="carousel-item active">
-                    <img src="https://via.placeholder.com/1200x400?text=Автозапчасти+для+любых+марок" class="d-block w-100" alt="Автозапчасти">
-                    <div class="carousel-caption d-none d-md-block">
-                        <h2>Запчасти для любых марок автомобилей</h2>
-                        <p>Огромный выбор оригинальных и неоригинальных запчастей</p>
+                    <img src="https://images.unsplash.com/photo-1595913542047-314c448fd090?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=400&q=80" class="d-block w-100" alt="Сельхозтехника">
+                    <div class="carousel-caption">
+                        <h2>Запчасти для всех видов сельхозтехники</h2>
+                        <p>Детали для тракторов, комбайнов и спецтехники от ведущих производителей</p>
+                        <a href="{% url 'catalog:categories' %}" class="btn btn-primary btn-lg">Перейти в каталог</a>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <img src="https://via.placeholder.com/1200x400?text=Доставка+по+всей+России" class="d-block w-100" alt="Доставка">
-                    <div class="carousel-caption d-none d-md-block">
-                        <h2>Доставка по всей России</h2>
-                        <p>Быстрая и надежная доставка в любой город</p>
+                    <img src="https://images.unsplash.com/photo-1498191923457-88552caeccb3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=400&q=80" class="d-block w-100" alt="Доставка по России">
+                    <div class="carousel-caption">
+                        <h2>Доставка по Орловской области и всей России</h2>
+                        <p>Оперативная доставка запчастей прямо в ваше хозяйство</p>
+                        <a href="#delivery" class="btn btn-primary btn-lg">Условия доставки</a>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <img src="https://via.placeholder.com/1200x400?text=Скидки+и+акции" class="d-block w-100" alt="Скидки">
-                    <div class="carousel-caption d-none d-md-block">
-                        <h2>Скидки и акции</h2>
-                        <p>Регулярные скидки и специальные предложения</p>
+                    <img src="https://images.unsplash.com/photo-1583265627959-fb7042f5133b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&h=400&q=80" class="d-block w-100" alt="Акции и скидки">
+                    <div class="carousel-caption">
+                        <h2>Сезонные акции для фермерских хозяйств</h2>
+                        <p>Скидки на запчасти перед посевной и уборочной</p>
+                        <a href="#promotions" class="btn btn-accent btn-lg">Узнать об акциях</a>
                     </div>
                 </div>
             </div>
@@ -44,96 +48,197 @@
     </div>
 </div>
 
+<!-- Основные типы техники -->
+<div class="machinery-types section-padding">
+    <h2 class="agriculture-text text-center mb-4">Запчасти для любой техники в вашем хозяйстве</h2>
+    <div class="row text-center mb-5">
+        <div class="col-md-3 col-sm-6 machinery-category">
+            <img src="https://images.unsplash.com/photo-1589923188651-268a9765e440?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80" alt="Тракторы">
+            <h3>Тракторы</h3>
+            <p>МТЗ, John Deere, Claas</p>
+        </div>
+        <div class="col-md-3 col-sm-6 machinery-category">
+            <img src="https://images.unsplash.com/photo-1562776903-c208a897d7b9?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80" alt="Комбайны">
+            <h3>Комбайны</h3>
+            <p>Полесье, John Deere, Claas</p>
+        </div>
+        <div class="col-md-3 col-sm-6 machinery-category">
+            <img src="https://images.unsplash.com/photo-1627556592933-ffe99c1cd9eb?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80" alt="Грузовики">
+            <h3>Грузовики</h3>
+            <p>КамАЗ, МАЗ, Volvo</p>
+        </div>
+        <div class="col-md-3 col-sm-6 machinery-category">
+            <img src="https://images.unsplash.com/photo-1588599376442-3cbf9c67449e?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&h=300&q=80" alt="Спецтехника">
+            <h3>Спецтехника</h3>
+            <p>Погрузчики, экскаваторы</p>
+        </div>
+    </div>
+</div>
+
 <!-- Популярные категории -->
-<h2 class="mb-4">Популярные категории</h2>
-<div class="row mb-5">
-    {% for category in categories %}
-        <div class="col-md-4 col-sm-6 mb-4">
-            <div class="card category-card h-100">
-                <div class="text-center pt-3">
+<div class="section-padding bg-light-custom">
+    <h2 class="agriculture-text text-center mb-4">Популярные категории запчастей</h2>
+    <div class="row mb-5">
+        {% for category in categories %}
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="category-card h-100">
                     {% if category.image %}
                         <img src="{{ category.image.url }}" class="category-image" alt="{{ category.name }}">
                     {% else %}
-                        <img src="https://via.placeholder.com/150?text=Нет+фото" class="category-image" alt="{{ category.name }}">
+                        <img src="https://images.unsplash.com/photo-1516733968668-dbdce39c4651?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&h=250&q=80" class="category-image" alt="{{ category.name }}">
                     {% endif %}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title text-center">{{ category.name }}</h5>
-                    {% if category.description %}
-                        <p class="card-text">{{ category.description|truncatechars:100 }}</p>
-                    {% endif %}
-                    <div class="text-center">
-                        <a href="{{ category.get_absolute_url }}" class="btn btn-outline-primary">Перейти в раздел</a>
+                    <div class="card-body">
+                        <h3 class="card-title">{{ category.name }}</h3>
+                        <a href="{{ category.get_absolute_url }}" class="stretched-link"></a>
                     </div>
                 </div>
             </div>
-        </div>
-    {% empty %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                Категории еще не добавлены.
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Категории еще не добавлены.
+                </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </div>
 
 <!-- Новые поступления -->
-<h2 class="mb-4">Новые поступления</h2>
-<div class="row">
-    {% for product in featured_products %}
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card h-100">
-                <div class="text-center pt-3">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                    {% else %}
-                        <img src="https://via.placeholder.com/150?text=Нет+фото" class="card-img-top" alt="{{ product.name }}">
-                    {% endif %}
+<div class="section-padding">
+    <div class="container">
+        <h2 class="agriculture-text text-center mb-4">Новые поступления запчастей</h2>
+        <div class="row">
+            {% for product in featured_products %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 slide-up">
+                        {% if product.is_new %}
+                            <span class="product-badge badge-new">Новинка</span>
+                        {% endif %}
+                        <div class="text-center pt-3">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="no-image-placeholder">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">Артикул: {{ product.sku }}</p>
+                            <p class="card-text price mt-auto">{{ product.price }} ₽</p>
+                            <div class="d-grid gap-2">
+                                <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text text-muted">Артикул: {{ product.sku }}</p>
-                    <p class="card-text price mt-auto">{{ product.price }} ₽</p>
-                    <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary">Подробнее</a>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        Товары еще не добавлены.
+                    </div>
                 </div>
-            </div>
+            {% endfor %}
         </div>
-    {% empty %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                Товары еще не добавлены.
-            </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'catalog:products' %}" class="btn btn-primary btn-lg">Смотреть все запчасти</a>
         </div>
-    {% endfor %}
+    </div>
 </div>
 
 <!-- Преимущества -->
-<h2 class="mb-4 mt-5">Наши преимущества</h2>
-<div class="row mb-5">
-    <div class="col-md-4 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Гарантия качества</h5>
-                <p class="card-text">Мы продаем только оригинальные запчасти и качественные аналоги от проверенных производителей.</p>
+<div class="features-section section-padding">
+    <div class="container">
+        <h2 class="agriculture-text text-center mb-4">Почему фермеры выбирают нас</h2>
+        <div class="row mb-5">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-tractor"></i>
+                    <h3>Специализация на сельхозтехнике</h3>
+                    <p>Мы занимаемся только сельскохозяйственной и специальной техникой, поэтому знаем все тонкости и особенности запчастей для неё.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Гарантия подлинности</h3>
+                    <p>Работаем напрямую с заводами-изготовителями и гарантируем подлинность всех запчастей в нашем магазине.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-truck"></i>
+                    <h3>Доставка в поле</h3>
+                    <p>Оперативная доставка запчастей непосредственно к месту ремонта техники, даже если вы находитесь в поле.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-tools"></i>
+                    <h3>Техническая консультация</h3>
+                    <p>Наши специалисты помогут подобрать необходимые запчасти и проконсультируют по вопросам ремонта и обслуживания.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-warehouse"></i>
+                    <h3>Большой склад</h3>
+                    <p>Поддерживаем обширный ассортимент запчастей на складе, чтобы вы не теряли время в сезон полевых работ.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-handshake"></i>
+                    <h3>Специальные условия</h3>
+                    <p>Для фермерских хозяйств предлагаем особые условия сотрудничества, отсрочку платежа и оптовые скидки.</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-truck fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Быстрая доставка</h5>
-                <p class="card-text">Отправляем заказы в день оформления. Доставка по всей России.</p>
+</div>
+
+<!-- О компании -->
+<div class="about-section section-padding" id="about">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <h2 class="agriculture-text">О компании "Первых"</h2>
+                <p class="lead">Более 15 лет поставляем запчасти для сельскохозяйственной и специальной техники.</p>
+                <p>Компания "Первых" начала свою деятельность в 2007 году и с тех пор стала надежным партнером для сотен фермерских хозяйств Орловской области и соседних регионов.</p>
+                <p>Мы специализируемся на поставках запчастей для тракторов, комбайнов, грузовиков и другой спецтехники, используемой в сельском хозяйстве.</p>
+                <p>Наша миссия — обеспечить бесперебойную работу вашей техники в любой сезон, особенно в периоды посевной и уборочной кампаний.</p>
+                <a href="#contacts" class="btn btn-primary mt-3">Связаться с нами</a>
+            </div>
+            <div class="col-md-6">
+                <img src="https://images.unsplash.com/photo-1571262276976-627d90857670?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80" alt="О компании" class="about-image">
             </div>
         </div>
     </div>
-    <div class="col-md-4 mb-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <i class="fas fa-headset fa-3x text-primary mb-3"></i>
-                <h5 class="card-title">Консультация специалистов</h5>
-                <p class="card-text">Наши специалисты помогут подобрать нужные запчасти для вашего автомобиля.</p>
+</div>
+
+<!-- Партнеры -->
+<div class="partners-section section-padding bg-light-custom">
+    <div class="container">
+        <h2 class="agriculture-text text-center mb-5">Наши партнеры</h2>
+        <div class="row align-items-center justify-content-center">
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=МТЗ" alt="МТЗ" class="partner-logo">
+            </div>
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=CLAAS" alt="CLAAS" class="partner-logo">
+            </div>
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=John+Deere" alt="John Deere" class="partner-logo">
+            </div>
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=КАМАЗ" alt="КАМАЗ" class="partner-logo">
+            </div>
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=Ростсельмаш" alt="Ростсельмаш" class="partner-logo">
+            </div>
+            <div class="col-md-2 col-sm-4 col-6 mb-4 text-center">
+                <img src="https://via.placeholder.com/150x80?text=ЯМЗ" alt="ЯМЗ" class="partner-logo">
             </div>
         </div>
     </div>

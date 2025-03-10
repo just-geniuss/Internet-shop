@@ -7,27 +7,25 @@ from .models import Profile
 
 
 def login_view(request):
-    """Авторизация пользователя"""
-    if request.user.is_authenticated:
-        return redirect('catalog:index')
-    
+    """Вход пользователя"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        next_url = request.POST.get('next', '')
+        
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', 'catalog:index')
             messages.success(request, f'Добро пожаловать, {user.first_name or user.username}!')
-            return redirect(next_url)
+            
+            # Перенаправляем пользователя на предыдущую страницу, если она была указана
+            return redirect(next_url if next_url else 'catalog:index')
         else:
-            messages.error(request, 'Неверный логин или пароль.')
+            messages.error(request, 'Неверное имя пользователя или пароль.')
     
-    context = {
-        'title': 'Вход в аккаунт',
-    }
-    return render(request, 'users/login.html', context)
+    next_url = request.GET.get('next', '')
+    return render(request, 'users/login.html', {'next': next_url})
 
 
 def logout_view(request):

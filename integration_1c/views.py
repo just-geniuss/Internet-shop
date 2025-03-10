@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -6,9 +6,11 @@ from django.utils import timezone
 from django.conf import settings
 import json
 import logging
-from .models import IntegrationSettings, SyncLog, SyncEntity
+from .models import IntegrationSettings, SyncLog, SyncEntity, ImportSetting, PendingImport
 from catalog.models import Product, Category, Manufacturer
 from orders.models import Order
+from django.contrib import messages
+from django.utils.text import slugify
 
 # Настройка логгера
 logger = logging.getLogger('integration_1c')
@@ -58,7 +60,7 @@ def import_data(request):
         entity_type = data.get('entity_type')
         
         if entity_type == 'product':
-            import_products(data)
+            import_result = import_products(data)
         elif entity_type == 'category':
             import_categories(data)
         elif entity_type == 'manufacturer':
@@ -87,7 +89,7 @@ def import_data(request):
             entity.last_sync = timezone.now()
             entity.save()
         
-        return JsonResponse({'success': True})
+        return JsonResponse({'success': True, 'data': import_result})
         
     except Exception as e:
         logger.error(f'Ошибка при импорте данных из 1С: {e}')
@@ -104,46 +106,235 @@ def import_data(request):
 def import_products(data):
     """Импорт товаров из 1С"""
     products_data = data.get('items', [])
+    imported_count = 0
+    pending_count = 0
+    error_count = 0
+    
+    # Получаем настройки импорта
+    import_settings = ImportSetting.objects.first()
+    if not import_settings:
+        # Если настройки не найдены, создаем дефолтные
+        import_settings = ImportSetting.objects.create()
     
     for product_data in products_data:
         external_id = product_data.get('external_id')
         
-        # Проверка существования товара
-        product = Product.objects.filter(external_id=external_id).first()
+        try:
+            # Проверка существования товара
+            product = Product.objects.filter(external_id=external_id).first()
+            
+            # Получение связанных объектов
+            category = Category.objects.filter(external_id=product_data.get('category_id')).first()
+            manufacturer = Manufacturer.objects.filter(external_id=product_data.get('manufacturer_id')).first()
+            
+            # Если категория не найдена, используем категорию по умолчанию или ставим товар в очередь редактирования
+            if not category:
+                if import_settings.allow_category_edit:
+                    # Сохранение товара для последующего редактирования
+                    add_to_pending_import(product_data)
+                    pending_count += 1
+                    continue
+                else:
+                    category = import_settings.default_category
+            
+            # Если производитель не найден, пропускаем товар
+            if not manufacturer:
+                logger.warning(f'Не найден производитель для товара {external_id}')
+                error_count += 1
+                continue
+            
+            # Определяем видимость товара
+            is_visible = True
+            if import_settings.default_visibility == 'hidden':
+                is_visible = False
+            elif import_settings.default_visibility == 'prompt':
+                # Сохранение товара для последующего редактирования
+                add_to_pending_import(product_data)
+                pending_count += 1
+                continue
+            
+            if product:
+                # Обновление существующего товара
+                product.name = product_data.get('name')
+                product.sku = product_data.get('sku')
+                product.description = product_data.get('description', '')
+                
+                # Если разрешено редактирование цены, ставим товар в очередь редактирования
+                if import_settings.allow_price_edit and not product_data.get('price_confirmed'):
+                    add_to_pending_import(product_data)
+                    pending_count += 1
+                    continue
+                
+                product.price = product_data.get('price')
+                product.stock = product_data.get('stock', 0)
+                product.available = product_data.get('available', True)
+                product.category = category
+                product.manufacturer = manufacturer
+                product.save()
+            else:
+                # Если разрешено редактирование цены, ставим товар в очередь редактирования
+                if import_settings.allow_price_edit and not product_data.get('price_confirmed'):
+                    add_to_pending_import(product_data)
+                    pending_count += 1
+                    continue
+                
+                # Создание нового товара
+                product = Product.objects.create(
+                    name=product_data.get('name'),
+                    slug=product_data.get('slug', '').lower() or slugify(product_data.get('name')),
+                    sku=product_data.get('sku'),
+                    description=product_data.get('description', ''),
+                    price=product_data.get('price'),
+                    stock=product_data.get('stock', 0),
+                    available=product_data.get('available', True),
+                    category=category,
+                    manufacturer=manufacturer,
+                    external_id=external_id,
+                    is_visible=is_visible
+                )
+            
+            imported_count += 1
+            
+        except Exception as e:
+            logger.error(f'Ошибка при импорте товара {external_id}: {str(e)}')
+            error_count += 1
+    
+    return {
+        'imported': imported_count,
+        'pending': pending_count,
+        'errors': error_count
+    }
+
+
+def add_to_pending_import(product_data):
+    """Добавить товар в очередь ожидания импорта для последующего редактирования"""
+    # Создаем или обновляем запись в таблице PendingImport
+    pending, created = PendingImport.objects.update_or_create(
+        external_id=product_data.get('external_id'),
+        defaults={
+            'data': json.dumps(product_data),
+            'status': 'pending'
+        }
+    )
+    return pending
+
+
+@user_passes_test(is_staff_user)
+def pending_imports(request):
+    """Страница ожидающих импорта товаров"""
+    pending_items = PendingImport.objects.filter(status='pending')
+    categories = Category.objects.all()
+    
+    context = {
+        'title': 'Товары ожидающие импорта',
+        'pending_items': pending_items,
+        'categories': categories,
+    }
+    return render(request, 'integration_1c/pending_imports.html', context)
+
+
+@user_passes_test(is_staff_user)
+def process_pending_import(request, pending_id):
+    """Обработка товара из очереди импорта"""
+    pending = get_object_or_404(PendingImport, id=pending_id)
+    
+    if request.method == 'POST':
+        # Получаем данные из формы
+        product_data = json.loads(pending.data)
+        product_data['category_id'] = request.POST.get('category')
+        product_data['price'] = request.POST.get('price')
+        product_data['price_confirmed'] = True
+        product_data['is_visible'] = request.POST.get('is_visible') == 'on'
         
-        # Получение связанных объектов
-        category = Category.objects.filter(external_id=product_data.get('category_id')).first()
-        manufacturer = Manufacturer.objects.filter(external_id=product_data.get('manufacturer_id')).first()
+        # Импортируем товар с обновленными данными
+        import_result = import_products({'items': [product_data]})
         
-        if not category or not manufacturer:
-            logger.warning(f'Не найдена категория или производитель для товара {external_id}')
-            continue
-        
-        if product:
-            # Обновление существующего товара
-            product.name = product_data.get('name')
-            product.sku = product_data.get('sku')
-            product.description = product_data.get('description', '')
-            product.price = product_data.get('price')
-            product.stock = product_data.get('stock', 0)
-            product.available = product_data.get('available', True)
-            product.category = category
-            product.manufacturer = manufacturer
-            product.save()
+        if import_result['imported'] > 0:
+            # Обновляем статус в очереди импорта
+            pending.status = 'imported'
+            pending.save()
+            messages.success(request, f'Товар "{product_data.get("name")}" успешно импортирован')
+            
+            # Получаем созданный товар
+            product = Product.objects.filter(external_id=product_data.get('external_id')).first()
+            if product:
+                return render(request, 'integration_1c/import_success.html', {
+                    'title': 'Импорт успешно завершен',
+                    'product': product
+                })
         else:
-            # Создание нового товара
-            product = Product.objects.create(
-                name=product_data.get('name'),
-                slug=product_data.get('slug', '').lower() or product_data.get('sku').lower(),
-                sku=product_data.get('sku'),
-                description=product_data.get('description', ''),
-                price=product_data.get('price'),
-                stock=product_data.get('stock', 0),
-                available=product_data.get('available', True),
-                category=category,
-                manufacturer=manufacturer,
-                external_id=external_id
-            )
+            messages.error(request, f'Ошибка импорта товара "{product_data.get("name")}"')
+        
+        return redirect('integration_1c:pending_imports')
+    
+    # Получаем данные товара
+    product_data = json.loads(pending.data)
+    
+    # Находим категорию и производителя
+    category = None
+    manufacturer = None
+    
+    if 'category_id' in product_data:
+        category = Category.objects.filter(external_id=product_data.get('category_id')).first()
+    
+    if 'manufacturer_id' in product_data:
+        manufacturer = Manufacturer.objects.filter(external_id=product_data.get('manufacturer_id')).first()
+    
+    context = {
+        'title': 'Редактирование товара перед импортом',
+        'pending': pending,
+        'product_data': product_data,
+        'current_category': category,
+        'current_manufacturer': manufacturer,
+        'categories': Category.objects.all(),
+    }
+    return render(request, 'integration_1c/process_pending_import.html', context)
+
+
+@user_passes_test(is_staff_user)
+def edit_pending_import(request, pending_id):
+    """Страница редактирования товара перед импортом"""
+    pending = get_object_or_404(PendingImport, id=pending_id)
+    
+    # Получаем данные товара
+    product_data = json.loads(pending.data)
+    
+    # Находим категорию и производителя
+    category = None
+    manufacturer = None
+    
+    if 'category_id' in product_data:
+        category = Category.objects.filter(external_id=product_data.get('category_id')).first()
+    
+    if 'manufacturer_id' in product_data:
+        manufacturer = Manufacturer.objects.filter(external_id=product_data.get('manufacturer_id')).first()
+    
+    context = {
+        'title': 'Редактирование товара перед импортом',
+        'pending': pending,
+        'product_data': product_data,
+        'current_category': category,
+        'current_manufacturer': manufacturer,
+        'categories': Category.objects.all(),
+    }
+    return render(request, 'integration_1c/edit_pending_import.html', context)
+
+
+@user_passes_test(is_staff_user)
+def reject_pending_import(request, pending_id):
+    """Отклонение импорта товара"""
+    pending = get_object_or_404(PendingImport, id=pending_id)
+    
+    # Получаем данные товара для сообщения
+    product_data = json.loads(pending.data)
+    product_name = product_data.get('name', 'Неизвестный товар')
+    
+    # Обновляем статус
+    pending.status = 'rejected'
+    pending.save()
+    
+    messages.success(request, f'Товар "{product_name}" был отклонен и не будет импортирован')
+    return redirect('integration_1c:pending_imports')
 
 
 def import_categories(data):

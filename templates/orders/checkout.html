@@ -22,6 +22,64 @@
                 <form action="{% url 'orders:checkout' %}" method="post" class="order-form">
                     {% csrf_token %}
                     
+                    <!-- Тип клиента -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Тип клиента*</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="client_type" id="individual" value="individual" checked>
+                            <label class="form-check-label" for="individual">
+                                Физическое лицо (самовывоз)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="client_type" id="business" value="business">
+                            <label class="form-check-label" for="business">
+                                Юридическое лицо (с доставкой по Орловской области)
+                            </label>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            <i class="fas fa-info-circle"></i> Доставка доступна только для юридических лиц по Орловской области
+                        </div>
+                    </div>
+                    
+                    <!-- Дополнительные поля для юр. лица -->
+                    <div id="business-fields" style="display: none;">
+                        <div class="card mb-3 bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">Данные организации</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="company_name" class="form-label">Название организации*</label>
+                                    <input type="text" class="form-control" id="company_name" name="company_name">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="inn" class="form-label">ИНН*</label>
+                                    <input type="text" class="form-control" id="inn" name="inn" maxlength="12">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Адрес доставки*</label>
+                                    <input type="text" class="form-control" id="address" name="address" value="{{ initial.address }}">
+                                    <div class="form-text">Доставка осуществляется только по Орловской области!</div>
+                                </div>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> Для юридических лиц доступна только оплата при получении
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Информация о самовывозе для физ. лиц -->
+                    <div id="pickup-info" class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt me-2 fa-2x"></i>
+                            <h5 class="mb-0">Адрес самовывоза</h5>
+                        </div>
+                        <p class="mb-1">п. Куликовский, ул. Придорожная, дом 1С2</p>
+                        <p class="mb-1">Магазин "Первых"</p>
+                        <p class="mb-0 small">ООО "Купер"</p>
+                    </div>
+                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="first_name" class="form-label">Имя*</label>
@@ -44,11 +102,6 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Адрес доставки*</label>
-                        <input type="text" class="form-control" id="address" name="address" value="{{ initial.address }}" required>
-                    </div>
-                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="city" class="form-label">Город*</label>
@@ -64,21 +117,21 @@
                         <div class="card-header">
                             <h5 class="mb-0">Способ оплаты</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body payment-options">
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payment_cash" value="cash" checked>
+                                <input class="form-check-input payment-method" type="radio" name="payment_method" id="payment_cash" value="cash" checked>
                                 <label class="form-check-label" for="payment_cash">
                                     <i class="far fa-money-bill-alt me-2"></i> Наличными при получении
                                 </label>
                             </div>
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payment_card" value="card">
+                                <input class="form-check-input payment-method" type="radio" name="payment_method" id="payment_card" value="card">
                                 <label class="form-check-label" for="payment_card">
                                     <i class="far fa-credit-card me-2"></i> Картой при получении
                                 </label>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payment_online" value="online">
+                            <div class="form-check individual-only">
+                                <input class="form-check-input payment-method" type="radio" name="payment_method" id="payment_online" value="online">
                                 <label class="form-check-label" for="payment_online">
                                     <i class="fas fa-credit-card me-2"></i> Онлайн оплата
                                 </label>
@@ -128,7 +181,7 @@
                     <span>Сумма заказа:</span>
                     <span>{{ cart.get_total_cost }} ₽</span>
                 </div>
-                <div class="d-flex justify-content-between mb-2">
+                <div id="delivery-cost" class="d-flex justify-content-between mb-2">
                     <span>Доставка:</span>
                     <span>0 ₽</span>
                 </div>
@@ -139,6 +192,77 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Карта -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Наше расположение</h5>
+            </div>
+            <div class="card-body p-0">
+                <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3A656776a40a19dd25449a2f08c4f42ae9353b16cf77ad6577842cc1f27f58528e&amp;source=constructor" width="100%" height="350" frameborder="0"></iframe>
+            </div>
+        </div>
     </div>
 </div>
+
+{% block extra_js %}
+<script>
+    // Обработка переключения типа клиента
+    document.addEventListener('DOMContentLoaded', function() {
+        const individualRadio = document.getElementById('individual');
+        const businessRadio = document.getElementById('business');
+        const businessFields = document.getElementById('business-fields');
+        const pickupInfo = document.getElementById('pickup-info');
+        const individualOnlyOptions = document.querySelectorAll('.individual-only');
+        const paymentMethodInputs = document.querySelectorAll('.payment-method');
+        
+        function updateFields() {
+            if (businessRadio.checked) {
+                businessFields.style.display = 'block';
+                pickupInfo.style.display = 'none';
+                individualOnlyOptions.forEach(el => el.style.display = 'none');
+                
+                // Для юр. лиц только оплата при получении
+                paymentMethodInputs.forEach(input => {
+                    if (input.value !== 'cash' && input.value !== 'card') {
+                        input.checked = false;
+                        input.disabled = true;
+                    }
+                });
+                
+                if (!document.getElementById('payment_cash').checked && !document.getElementById('payment_card').checked) {
+                    document.getElementById('payment_cash').checked = true;
+                }
+                
+                // Делаем поля для юр. лиц обязательными
+                document.getElementById('company_name').required = true;
+                document.getElementById('inn').required = true;
+                document.getElementById('address').required = true;
+            } else {
+                businessFields.style.display = 'none';
+                pickupInfo.style.display = 'block';
+                individualOnlyOptions.forEach(el => el.style.display = 'block');
+                
+                // Для физ. лиц все варианты оплаты
+                paymentMethodInputs.forEach(input => {
+                    input.disabled = false;
+                });
+                
+                // Убираем обязательность для полей юр. лиц
+                document.getElementById('company_name').required = false;
+                document.getElementById('inn').required = false;
+                document.getElementById('address').required = false;
+            }
+        }
+        
+        // Инициализация
+        updateFields();
+        
+        // Обработчики событий
+        individualRadio.addEventListener('change', updateFields);
+        businessRadio.addEventListener('change', updateFields);
+    });
+</script>
+{% endblock %}
+
 {% endblock %} 
