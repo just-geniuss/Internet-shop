@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Обработка товара{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Обработка товара перед импортом</h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Вы можете указать параметры товара перед его импортом в систему.
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ product_data.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Название товара:</label>
+                                <p class="form-control-plaintext">{{ product_data.name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Артикул:</label>
+                                <p class="form-control-plaintext">{{ product_data.sku }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Производитель:</label>
+                                <p class="form-control-plaintext">
+                                    {% if current_manufacturer %}
+                                        {{ current_manufacturer.name }} ({{ current_manufacturer.country }})
+                                    {% else %}
+                                        <span class="text-danger">Не найден</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Внешний ID:</label>
+                                <p class="form-control-plaintext">
+                                    <code>{{ pending.external_id }}</code>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Категория товара*:</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Выберите категорию</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.external_id }}" {% if current_category and current_category.id == category.id %}selected{% endif %}>
+                                        {{ category.name }} {% if category.parent %}({{ category.parent.name }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Выберите категорию, в которой будет отображаться товар</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Цена товара*:</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="price" name="price" 
+                                       value="{{ product_data.price|default:'0' }}" min="0" step="0.01" required>
+                                <span class="input-group-text">₽</span>
+                            </div>
+                            <div class="form-text">Укажите актуальную цену товара</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_visible" name="is_visible" checked>
+                            <label class="form-check-label" for="is_visible">Отображать товар на сайте</label>
+                            <div class="form-text">Если не отмечено, товар будет импортирован, но не будет виден посетителям сайта</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <div>
+                                <a href="{% url 'integration_1c:pending_imports' %}" class="btn btn-secondary me-2">
+                                    <i class="fas fa-arrow-left"></i> Назад к списку
+                                </a>
+                                <a href="{% url 'integration_1c:reject_pending_import' pending.id %}" class="btn btn-danger" 
+                                   onclick="return confirm('Вы уверены, что хотите отклонить импорт этого товара?');">
+                                    <i class="fas fa-times"></i> Отклонить
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Сохранить и импортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Описание товара</h5>
+                </div>
+                <div class="card-body">
+                    {% if product_data.description %}
+                        <p>{{ product_data.description|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted">Описание отсутствует</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Информация о товаре</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Наличие:</strong> 
+                            {% if product_data.stock > 0 %}
+                                <span class="text-success">В наличии ({{ product_data.stock }} шт.)</span>
+                            {% else %}
+                                <span class="text-danger">Нет в наличии</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Доступность:</strong> 
+                            {% if product_data.available %}
+                                <span class="text-success">Доступен</span>
+                            {% else %}
+                                <span class="text-danger">Недоступен</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>Добавлен в очередь:</strong> {{ pending.created|date:"d.m.Y H:i" }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

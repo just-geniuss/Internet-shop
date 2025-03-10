@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Товары ожидающие импорта{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Товары ожидающие импорта из 1С</h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Эти товары требуют вашего внимания перед импортом.
+        Вам нужно указать цену, категорию и видимость на сайте для каждого товара.
+    </div>
+    
+    {% if pending_items %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Артикул</th>
+                        <th>Производитель</th>
+                        <th>Внешний ID</th>
+                        <th>Дата добавления</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pending_items %}
+                        {% with data=item.get_product_data %}
+                            <tr>
+                                <td>{{ data.name }}</td>
+                                <td>{{ data.sku }}</td>
+                                <td>{{ data.manufacturer_name }}</td>
+                                <td><code>{{ item.external_id }}</code></td>
+                                <td>{{ item.created|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'integration_1c:process_pending_import' item.id %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Нет товаров, ожидающих импорта.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'admin:index' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Вернуться в администрирование
+        </a>
+    </div>
+</div>
+{% endblock %} 
