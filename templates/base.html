@@ -378,7 +378,7 @@
 <body class="smooth-scroll">
     <!-- Шапка сайта -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
+        <nav class="navbar navbar-expand-lg navbar-light sticky-top">
             <div class="container">
                 <a class="navbar-brand" href="{% url 'catalog:index' %}">
                     <img src="{% static 'img/logo_dark_optimized.svg' %}" alt="Первых" class="brand-logo" width="180" height="60">
@@ -433,7 +433,7 @@
                     <div class="d-flex">
                         <a href="{% url 'orders:cart' %}" class="btn btn-outline-primary me-2 btn-icon position-relative">
                             <i class="fas fa-shopping-cart"></i> 
-                            <span id="cart-items-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent">
+                            <span id="cart-items-count" class="position-absolute top-100 start-50 translate-middle badge rounded-pill" style="background-color: var(--bg-color); color: var(--text-color); font-size: 0.65rem; margin-top: -10px;">
                                 {% if request.user.is_authenticated %}
                                     {{ request.user.cart.items.count|default:'0' }}
                                 {% else %}
