@@ -75,22 +75,301 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
     
+    <!-- AOS - Анимация при скролле -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <!-- Основной CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
+    <style>
+        :root {
+            --primary-color: #52B04C;
+            --secondary-color: #58B9E7;
+            --accent-color: #E77C58;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: var(--text-color);
+            background-color: #fff;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(82, 176, 76, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #479e42;
+            border-color: #479e42;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(82, 176, 76, 0.3);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .card {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 0.75rem 0;
+        }
+        
+        .navbar-brand img {
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 80%;
+        }
+        
+        .contact-strip {
+            background-color: var(--light-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .footer {
+            background-color: #333;
+            color: #fff;
+            padding: 3rem 0 1rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-title {
+            position: relative;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-link {
+            display: block;
+            color: #ccc;
+            margin-bottom: 0.75rem;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            margin-right: 0.5rem;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .breadcrumb {
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .product-image {
+            max-height: 300px;
+            object-fit: contain;
+        }
+        
+        .no-image-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background-color: var(--light-bg);
+            color: #aaa;
+            border-radius: var(--border-radius);
+        }
+        
+        .category-card:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Анимации */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 767.98px) {
+            .navbar-brand img {
+                max-width: 150px;
+            }
+            
+            .product-card {
+                margin-bottom: 2rem;
+            }
+            
+            .footer {
+                text-align: center;
+            }
+            
+            .footer-title::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        
+        /* Тёмная тема */
+        [data-theme="dark"] {
+            --text-color: #f8f9fa;
+            --light-bg: #343a40;
+            
+            background-color: #212529;
+            color: var(--text-color);
+        }
+        
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .navbar,
+        [data-theme="dark"] .breadcrumb {
+            background-color: #343a40;
+        }
+        
+        [data-theme="dark"] .card {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        [data-theme="dark"] .text-muted {
+            color: #adb5bd !important;
+        }
+        
+        /* Улучшения для проксрутки */
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        
+        /* Стилизация скроллбара */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #479e42;
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="smooth-scroll">
     <!-- Шапка сайта -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light">
+        <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
             <div class="container">
                 <a class="navbar-brand" href="{% url 'catalog:index' %}">
                     <img src="{% static 'img/logo_dark_optimized.svg' %}" alt="Первых" class="brand-logo" width="180" height="60">
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
@@ -116,7 +395,7 @@
                     </ul>
                     
                     <!-- Форма поиска -->
-                    <form class="d-flex me-3" action="{% url 'catalog:search' %}" method="get">
+                    <form class="d-flex my-2 my-lg-0 me-lg-3" action="{% url 'catalog:search' %}" method="get">
                         <div class="input-group">
                             <input class="form-control" type="search" name="q" placeholder="Поиск запчастей" aria-label="Search">
                             <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
@@ -124,16 +403,20 @@
                     </form>
                     
                     <!-- Переключатель темы -->
-                    <div class="theme-toggle-wrapper d-none d-lg-flex">
-                        <i class="fas fa-moon"></i>
-                        <div class="theme-toggle" id="theme-toggle"></div>
+                    <div class="theme-toggle-wrapper d-none d-lg-flex align-items-center me-3">
+                        <i class="fas fa-sun me-2 text-warning"></i>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="theme-toggle">
+                            <label class="form-check-label" for="theme-toggle"></label>
+                        </div>
+                        <i class="fas fa-moon ms-2 text-primary"></i>
                     </div>
                     
                     <!-- Правая часть шапки -->
                     <div class="d-flex">
-                        <a href="{% url 'orders:cart' %}" class="btn btn-outline-primary me-2 btn-icon">
+                        <a href="{% url 'orders:cart' %}" class="btn btn-outline-primary me-2 btn-icon position-relative">
                             <i class="fas fa-shopping-cart"></i> 
-                            <span id="cart-items-count" class="badge bg-accent rounded-pill">
+                            <span id="cart-items-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent">
                                 {% if request.user.is_authenticated %}
                                     {{ request.user.cart.items.count|default:'0' }}
                                 {% else %}
@@ -144,10 +427,10 @@
                         
                         {% if user.is_authenticated %}
                             <div class="dropdown">
-                                <button class="btn btn-outline-primary dropdown-toggle btn-icon" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user"></i> {{ user.first_name|default:user.username }}
+                                <button class="btn btn-outline-primary dropdown-toggle btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user me-1"></i> {{ user.first_name|default:user.username }}
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
                                     <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-id-card me-2"></i> Профиль</a></li>
                                     <li><a class="dropdown-item" href="{% url 'orders:order_history' %}"><i class="fas fa-history me-2"></i> История заказов</a></li>
                                     <li><hr class="dropdown-divider"></li>
@@ -155,8 +438,8 @@
                                 </ul>
                             </div>
                         {% else %}
-                            <a href="{% url 'users:login' %}" class="btn btn-outline-primary me-2 btn-icon"><i class="fas fa-sign-in-alt"></i> Войти</a>
-                            <a href="{% url 'users:register' %}" class="btn btn-primary btn-icon"><i class="fas fa-user-plus"></i> Регистрация</a>
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-primary me-2 btn-icon d-none d-sm-inline-block"><i class="fas fa-sign-in-alt me-1"></i> Войти</a>
+                            <a href="{% url 'users:register' %}" class="btn btn-primary btn-icon"><i class="fas fa-user-plus me-1 d-none d-sm-inline-block"></i> Регистрация</a>
                         {% endif %}
                     </div>
                 </div>
@@ -167,14 +450,14 @@
     <!-- Контактная строка -->
     <div class="bg-light py-2 mb-3 d-none d-md-block contact-strip">
         <div class="container">
-            <div class="row">
+            <div class="row align-items-center">
                 <div class="col-md-8">
-                    <small class="me-3"><i class="fas fa-phone text-accent me-1"></i> +7(910)2069666</small>
-                    <small class="me-3"><i class="fas fa-envelope text-accent me-1"></i> pervyhorel@yandex.ru</small>
-                    <small><i class="fas fa-map-marker-alt text-accent me-1"></i> п. Куликовский, ул. Придорожная, дом 1С2</small>
+                    <small class="me-3"><i class="fas fa-phone text-primary me-1"></i> +7(910)2069666</small>
+                    <small class="me-3"><i class="fas fa-envelope text-primary me-1"></i> pervyhorel@yandex.ru</small>
+                    <small><i class="fas fa-map-marker-alt text-primary me-1"></i> п. Куликовский, ул. Придорожная, дом 1С2</small>
                 </div>
                 <div class="col-md-4 text-end">
-                    <small><i class="fas fa-truck-field me-1"></i> Запчасти для сельхозтехники и спецтехники</small>
+                    <small><i class="fas fa-truck-field me-1 text-primary"></i> Запчасти для сельхозтехники и спецтехники</small>
                 </div>
             </div>
         </div>
@@ -186,7 +469,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <nav class="nav admin-nav">
+                    <nav class="nav admin-nav overflow-auto">
                         <a class="nav-link text-white" href="{% url 'admin:index' %}">
                             <i class="fas fa-tachometer-alt"></i> Админ-панель
                         </a>
@@ -213,7 +496,7 @@
     {% if messages %}
         <div class="container mt-3">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -230,38 +513,38 @@
     <footer class="footer" id="contacts">
         <div class="container">
             <div class="row">
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
                     <div class="footer-section">
-                        <img src="{% static 'img/logo_dark_optimized.svg' %}" alt="Первых" class="footer-logo">
+                        <img src="{% static 'img/logo_dark_optimized.svg' %}" alt="Первых" class="footer-logo mb-3" width="180">
                         <p>Магазин автозапчастей "Первых" предлагает широкий ассортимент запчастей для сельскохозяйственной, грузовой и спецтехники. Мы гарантируем качество и надежность каждой детали.</p>
                         <div class="social-links mt-3">
-                            <a href="#"><i class="fab fa-vk"></i></a>
-                            <a href="#"><i class="fab fa-telegram"></i></a>
-                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#" aria-label="ВКонтакте"><i class="fab fa-vk"></i></a>
+                            <a href="#" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
+                            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
                     <div class="footer-section">
                         <h5 class="footer-title">Контакты</h5>
                         <div class="footer-contacts">
-                            <p><i class="fas fa-map-marker-alt"></i> п. Куликовский, ул. Придорожная, дом 1С2</p>
-                            <p><i class="fas fa-phone"></i> +7(910)2069666</p>
-                            <p><i class="fas fa-envelope"></i> pervyhorel@yandex.ru</p>
-                            <p><i class="fas fa-clock"></i> Пн-Пт: 9:00-18:00, Сб: 9:00-15:00</p>
+                            <p><i class="fas fa-map-marker-alt me-2"></i> п. Куликовский, ул. Придорожная, дом 1С2</p>
+                            <p><i class="fas fa-phone me-2"></i> +7(910)2069666</p>
+                            <p><i class="fas fa-envelope me-2"></i> pervyhorel@yandex.ru</p>
+                            <p><i class="fas fa-clock me-2"></i> Пн-Пт: 9:00-18:00, Сб: 9:00-15:00</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
                     <div class="footer-section">
                         <h5 class="footer-title">Каталог запчастей</h5>
-                        <a href="#" class="footer-link">Запчасти для тракторов</a>
-                        <a href="#" class="footer-link">Запчасти для комбайнов</a>
-                        <a href="#" class="footer-link">Запчасти для грузовиков</a>
-                        <a href="#" class="footer-link">Гидравлика для спецтехники</a>
-                        <a href="#" class="footer-link">Двигатели и комплектующие</a>
+                        <a href="#" class="footer-link"><i class="fas fa-angle-right me-2"></i> Запчасти для тракторов</a>
+                        <a href="#" class="footer-link"><i class="fas fa-angle-right me-2"></i> Запчасти для комбайнов</a>
+                        <a href="#" class="footer-link"><i class="fas fa-angle-right me-2"></i> Запчасти для грузовиков</a>
+                        <a href="#" class="footer-link"><i class="fas fa-angle-right me-2"></i> Гидравлика для спецтехники</a>
+                        <a href="#" class="footer-link"><i class="fas fa-angle-right me-2"></i> Двигатели и комплектующие</a>
                     </div>
-                    <div class="footer-section">
+                    <div class="footer-section mt-4">
                         <h5 class="footer-title">Способы оплаты</h5>
                         <div>
                             <i class="fab fa-cc-visa fa-2x me-2"></i>
@@ -271,46 +554,88 @@
                     </div>
                 </div>
             </div>
-            <div class="copyright text-center">
+            <div class="copyright text-center pt-3 mt-4 border-top border-secondary">
                 <p>© 2025 Магазин автозапчастей "Первых". Все права защищены. ООО "Купер"</p>
             </div>
         </div>
     </footer>
     
+    <!-- Кнопка возврата наверх -->
+    <button id="backToTop" class="btn btn-primary rounded-circle position-fixed bottom-0 end-0 m-4 d-none" style="width: 50px; height: 50px;">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
     <!-- Bootstrap и jQuery с отложенной загрузкой -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
     
-    <!-- Тема и дополнительные скрипты -->
+    <!-- AOS - Анимация при скролле -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Основные скрипты -->
     <script>
-        // Переключатель темы
+        // Инициализация AOS
         document.addEventListener('DOMContentLoaded', function() {
+            AOS.init({
+                duration: 800,
+                once: true
+            });
+            
+            // Переключатель темы
             const themeToggle = document.getElementById('theme-toggle');
             const htmlElement = document.documentElement;
-            const currentTheme = localStorage.getItem('theme') || 'light';
             
-            // Устанавливаем начальную тему
-            htmlElement.setAttribute('data-theme', currentTheme);
-            if (currentTheme === 'dark') {
-                themeToggle.classList.add('active');
+            // Проверяем сохраненную тему из localStorage
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
             }
             
-            // Обработчик переключения темы
-            themeToggle.addEventListener('click', function() {
-                themeToggle.classList.toggle('active');
-                const theme = themeToggle.classList.contains('active') ? 'dark' : 'light';
-                htmlElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
+            // Обработчик изменения темы
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    htmlElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
             });
-        });
-    </script>
-    
-    {% block extra_js %}{% endblock %}
-    
-    <!-- Встроенный асинхронный JavaScript для ускорения загрузки -->
-    <script>
-        // Отложенная загрузка изображений для улучшения Core Web Vitals
-        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Кнопка возврата наверх
+            const backToTopButton = document.getElementById('backToTop');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 300) {
+                    backToTopButton.classList.remove('d-none');
+                    backToTopButton.classList.add('d-flex', 'justify-content-center', 'align-items-center');
+                } else {
+                    backToTopButton.classList.add('d-none');
+                    backToTopButton.classList.remove('d-flex', 'justify-content-center', 'align-items-center');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            });
+            
+            // Плавный скролл для якорных ссылок
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({behavior: 'smooth'});
+                    }
+                });
+            });
+            
+            // Отложенная загрузка изображений
             var lazyImages = [].slice.call(document.querySelectorAll('img.lazy'));
             
             if ('IntersectionObserver' in window) {
@@ -374,5 +699,7 @@
             }
         });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html> 
