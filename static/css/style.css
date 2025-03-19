@@ -311,7 +311,7 @@ img[src$=".svg"] {
 
 /* Контактная полоса */
 .contact-strip {
-    background-color: var(--secondary-color) !important;
+    background-color: var(--secondary-color);
     padding: var(--spacing-sm) 0;
     font-size: var(--small-font-size);
     color: var(--dark-muted);

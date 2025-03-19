@@ -282,10 +282,10 @@
 </div>
 
 <!-- CTA блок -->
-<div class="card bg-primary text-white mb-5" data-aos="fade-up">
+<div class="card bg-dark mb-5" data-aos="fade-up">
     <div class="card-body p-4 text-center">
-        <h2 class="card-title">Не нашли нужную запчасть?</h2>
-        <p class="card-text">Свяжитесь с нами, и мы поможем подобрать необходимые детали под ваш заказ!</p>
+        <h2 class="card-title cta-title" style="color: #52B04C;">Не нашли нужную запчасть?</h2>
+        <p class="card-text text-white">Свяжитесь с нами, и мы поможем подобрать необходимые детали под ваш заказ!</p>
         <div class="mt-3">
             <a href="tel:+79102069666" class="btn btn-light me-2"><i class="fas fa-phone me-1"></i> Позвонить</a>
             <a href="mailto:pervyhorel@yandex.ru" class="btn btn-outline-light"><i class="fas fa-envelope me-1"></i> Написать</a>
@@ -402,6 +402,15 @@
     .featured-categories .card:hover,
     .featured-products .card:hover {
         transform: translateY(-10px);
+    }
+    
+    /* Цвет заголовка CTA при наведении */
+    .cta-title {
+        transition: color 0.3s ease;
+    }
+    
+    .card:hover .cta-title {
+        color: #58B9E7 !important;
     }
 </style>
 {% endblock %} 

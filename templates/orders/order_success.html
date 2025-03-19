@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta_title %}Заказ оформлен - Запчасти для спецтехники "Первых"{% endblock %}
+
+{% block meta_description %}Ваш заказ успешно оформлен. Мы свяжемся с вами для подтверждения заказа.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <!-- Иконка успеха -->
+            <div class="success-icon mb-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+            </div>
+            
+            <!-- Заголовок -->
+            <h1 class="mb-4">Спасибо за заказ!</h1>
+            
+            <!-- Номер заказа -->
+            <div class="order-number mb-4">
+                <p class="text-muted mb-1">Номер вашего заказа:</p>
+                <h2 class="text-primary">{{ order.number }}</h2>
+            </div>
+            
+            <!-- Информация о заказе -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Информация о заказе</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.name }}</h6>
+                                                <small class="text-muted">{{ item.quantity }} шт. × {{ item.price }} ₽</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">{{ item.total_price }} ₽</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td><strong>Итого:</strong></td>
+                                    <td class="text-end"><strong>{{ order.total_price }} ₽</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Информация о доставке -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Информация о доставке</h5>
+                    <div class="row">
+                        <div class="col-md-6 text-start">
+                            <p class="mb-1"><strong>Получатель:</strong></p>
+                            <p class="mb-1">{{ order.name }}</p>
+                            <p class="mb-1">{{ order.phone }}</p>
+                            <p class="mb-0">{{ order.email }}</p>
+                        </div>
+                        <div class="col-md-6 text-start">
+                            <p class="mb-1"><strong>Адрес доставки:</strong></p>
+                            <p class="mb-1">{{ order.city }}, {{ order.street }}, д. {{ order.house }}</p>
+                            {% if order.apartment %}
+                            <p class="mb-1">кв. {{ order.apartment }}</p>
+                            {% endif %}
+                            <p class="mb-0">{{ order.postal_code }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Следующие шаги -->
+            <div class="next-steps mb-4">
+                <h5 class="mb-3">Что дальше?</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-envelope text-primary mb-3" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">Подтверждение заказа</h6>
+                                <p class="card-text small">Мы отправим вам email с подтверждением заказа и деталями оплаты</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-phone text-primary mb-3" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">Связь с менеджером</h6>
+                                <p class="card-text small">Наш менеджер свяжется с вами для уточнения деталей заказа</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-truck text-primary mb-3" style="font-size: 2rem;"></i>
+                                <h6 class="card-title">Доставка</h6>
+                                <p class="card-text small">После оплаты мы отправим ваш заказ по указанному адресу</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Кнопки действий -->
+            <div class="action-buttons">
+                <a href="{% url 'catalog:index' %}" class="btn btn-primary me-2">
+                    <i class="fas fa-home me-2"></i>На главную
+                </a>
+                <a href="{% url 'catalog:categories' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-th-large me-2"></i>В каталог
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.success-icon {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.order-number h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.table th {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.img-thumbnail {
+    border-radius: 4px;
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons .btn {
+    padding: 0.75rem 1.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .order-number h2 {
+        font-size: 2rem;
+    }
+    
+    .table td {
+        padding: 0.5rem;
+    }
+    
+    .img-thumbnail {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+</style>
+{% endblock %} 
