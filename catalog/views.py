@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
 from .models import Category, Product, Manufacturer
+from django.http import HttpResponse
+from django.conf import settings
 
 
 def index(request):
@@ -103,3 +105,32 @@ def search(request):
         'products': products,
     }
     return render(request, 'catalog/search.html', context)
+
+
+def robots_txt(request):
+    """Динамическая генерация robots.txt в зависимости от среды"""
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /orders/checkout/",
+        "Disallow: /users/login/",
+        "Disallow: /users/register/",
+        "Disallow: /users/profile/",
+        "Disallow: /integration/",
+        "Allow: /",
+        "Allow: /catalog/",
+        "Allow: /static/",
+        "Allow: /media/",
+    ]
+    
+    # Получаем все категории для индексации
+    categories = Category.objects.all()
+    for category in categories:
+        lines.append(f"Allow: {category.get_absolute_url()}")
+    
+    # Добавляем ссылку на sitemap
+    host = request.get_host()
+    protocol = 'https' if request.is_secure() else 'http'
+    lines.append(f"\nSitemap: {protocol}://{host}/sitemap.xml")
+    
+    return HttpResponse("\n".join(lines), content_type="text/plain")

@@ -1,15 +1,124 @@
 {% extends 'base.html' %}
 
+{% block meta_title %}{% if category.meta_title %}{{ category.meta_title }}{% else %}{{ category.name }}{% endif %} - Запчасти для спецтехники "Первых"{% endblock %}
+{% block meta_description %}{{ category.get_meta_description }}{% endblock %}
+{% block meta_keywords %}{% if category.meta_keywords %}{{ category.meta_keywords }}{% else %}{{ category.name }}, запчасти, Орловская область, купить{% endif %}{% endblock %}
+
+{% block og_title %}{{ category.name }} - Запчасти в магазине Первых{% endblock %}
+{% block og_description %}{{ category.get_meta_description }}{% endblock %}
+{% block og_type %}website{% endblock %}
+{% block og_image %}{% if category.image %}{{ request.scheme }}://{{ request.get_host }}{{ category.image.url }}{% endif %}{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "{{ category.name }}",
+  "description": "{{ category.description|default:category.get_meta_description }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "numberOfItems": {{ products|length }},
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for product in products %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "Product",
+          "name": "{{ product.name }}",
+          "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
+          {% if product.image %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}",{% endif %}
+          "sku": "{{ product.sku }}",
+          "brand": {
+            "@type": "Brand",
+            "name": "{{ product.manufacturer.name }}"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "{{ product.price }}",
+            "priceCurrency": "RUB",
+            "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+          }
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Категории",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:categories' %}"
+    },
+    {% if category.parent %}
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ category.parent.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ category.parent.get_absolute_url }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ category.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ category.get_absolute_url }}"
+    }
+    {% else %}
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ category.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ category.get_absolute_url }}"
+    }
+    {% endif %}
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <!-- Хлебные крошки -->
 <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'catalog:categories' %}">Категории</a></li>
+    <ol class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'catalog:index' %}" itemprop="item"><span itemprop="name">Главная</span></a>
+            <meta itemprop="position" content="1" />
+        </li>
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'catalog:categories' %}" itemprop="item"><span itemprop="name">Категории</span></a>
+            <meta itemprop="position" content="2" />
+        </li>
         {% if category.parent %}
-            <li class="breadcrumb-item"><a href="{{ category.parent.get_absolute_url }}">{{ category.parent.name }}</a></li>
+            <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="{{ category.parent.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ category.parent.name }}</span></a>
+                <meta itemprop="position" content="3" />
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <span itemprop="name">{{ category.name }}</span>
+                <meta itemprop="position" content="4" />
+            </li>
+        {% else %}
+            <li class="breadcrumb-item active" aria-current="page" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <span itemprop="name">{{ category.name }}</span>
+                <meta itemprop="position" content="3" />
+            </li>
         {% endif %}
-        <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
     </ol>
 </nav>
 
@@ -22,21 +131,21 @@
     </div>
     <div class="col-md-4 text-end">
         {% if category.image %}
-            <img src="{{ category.image.url }}" class="img-fluid rounded" style="max-height: 150px;" alt="{{ category.name }}">
+            <img src="{{ category.image.url }}" class="img-fluid rounded" style="max-height: 150px;" alt="{{ category.name }}" loading="lazy" width="300" height="150">
         {% endif %}
     </div>
 </div>
 
 <!-- Подкатегории, если есть -->
 {% if category.children.exists %}
-    <h3 class="mb-3">Подкатегории</h3>
+    <h2 class="mb-3">Подкатегории</h2>
     <div class="row mb-4">
         {% for subcategory in category.children.all %}
             <div class="col-md-4 col-sm-6 mb-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">{{ subcategory.name }}</h5>
-                        <a href="{{ subcategory.get_absolute_url }}" class="stretched-link"></a>
+                        <h3 class="card-title h5">{{ subcategory.name }}</h3>
+                        <a href="{{ subcategory.get_absolute_url }}" class="stretched-link" rel="next">Перейти в категорию {{ subcategory.name }}</a>
                     </div>
                 </div>
             </div>
@@ -98,16 +207,22 @@
 </div>
 
 <!-- Товары -->
-<h3 class="mb-3">Товары в категории "{{ category.name }}"</h3>
+<h2 class="mb-3">Товары в категории "{{ category.name }}"</h2>
 
 {% if products %}
-    <div class="row">
+    <div class="row" itemscope itemtype="https://schema.org/ItemList">
+        <meta itemprop="numberOfItems" content="{{ products|length }}" />
+        <meta itemprop="name" content="Товары в категории {{ category.name }}" />
+        
         {% for product in products %}
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4" itemprop="itemListElement" itemscope itemtype="https://schema.org/Product">
+                <meta itemprop="position" content="{{ forloop.counter }}" />
+                <meta itemprop="name" content="{{ product.name }}" />
+                <meta itemprop="sku" content="{{ product.sku }}" />
                 <div class="card h-100">
                     <div class="text-center pt-3">
                         {% if product.image %}
-                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <img src="{{ product.image.url }}" class="card-img-top lazy" data-src="{{ product.image.url }}" alt="{{ product.name }}" itemprop="image" loading="lazy" width="200" height="200">
                         {% else %}
                             <div class="no-image-placeholder">
                                 <i class="fas fa-car-battery"></i>
@@ -116,10 +231,10 @@
                         {% endif %}
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ product.name }}</h5>
+                        <h3 class="card-title h5"><a href="{{ product.get_absolute_url }}" itemprop="url">{{ product.name }}</a></h3>
                         <div class="text-muted small mb-2">
-                            <div><strong>Артикул:</strong> {{ product.sku }}</div>
-                            <div><strong>Производитель:</strong> {{ product.manufacturer.name }}</div>
+                            <div><strong>Артикул:</strong> <span itemprop="sku">{{ product.sku }}</span></div>
+                            <div><strong>Производитель:</strong> <span itemprop="brand" itemscope itemtype="https://schema.org/Brand"><span itemprop="name">{{ product.manufacturer.name }}</span></span></div>
                         </div>
                         
                         {% if product.stock > 0 %}
@@ -128,7 +243,16 @@
                             <span class="badge bg-danger mb-2">Нет в наличии</span>
                         {% endif %}
                         
-                        <p class="card-text price mt-auto mb-3">{{ product.price }} ₽</p>
+                        <p class="card-text price mt-auto mb-3" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="price" content="{{ product.price }}" />
+                            <meta itemprop="priceCurrency" content="RUB" />
+                            {% if product.stock > 0 %}
+                                <link itemprop="availability" href="https://schema.org/InStock" />
+                            {% else %}
+                                <link itemprop="availability" href="https://schema.org/OutOfStock" />
+                            {% endif %}
+                            {{ product.price }} ₽
+                        </p>
                         
                         <div class="d-flex justify-content-between">
                             <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Подробнее</a>
@@ -197,11 +321,12 @@
     </div>
 {% endif %}
 
-<!-- SEO блок -->
+<!-- SEO блок с улучшенной структурой -->
 <div class="seo-text mt-5">
-    <h4>Автозапчасти в магазине "Первых" - ООО "Купер"</h4>
-    <p>Ищете качественные автозапчасти в Орловской области? Магазин "Первых" предлагает широкий ассортимент оригинальных и неоригинальных запчастей для различных марок автомобилей.</p>
-    <p>У нас вы найдете детали для двигателя, тормозной системы, подвески, электрооборудования и многое другое. Мы сотрудничаем только с проверенными поставщиками и гарантируем качество каждой детали.</p>
+    <h2>Автозапчасти в категории "{{ category.name }}" в магазине "Первых"</h2>
+    <p>В интернет-магазине "Первых" ООО "Купер" представлен большой выбор автозапчастей в категории "{{ category.name }}". Мы предлагаем только качественные детали от проверенных производителей по доступным ценам.</p>
+    <p>У нас вы найдете запчасти для легковых и грузовых автомобилей, сельскохозяйственной и специальной техники. Вся продукция сертифицирована и имеет гарантию.</p>
     <p>Для физических лиц доступен самовывоз из нашего магазина по адресу: п. Куликовский, ул. Придорожная, дом 1С2. Юридическим лицам предоставляем услугу доставки по всей Орловской области.</p>
+    <p>Телефон для связи: +7(910)2069666, Email: pervyhorel@yandex.ru</p>
 </div>
 {% endblock %} 

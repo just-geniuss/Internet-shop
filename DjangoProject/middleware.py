@@ -4,146 +4,112 @@ from django.http import HttpResponse
 import time
 
 
-class SecurityHeadersMiddleware(MiddlewareMixin):
+class SecurityHeadersMiddleware:
     """
-    Middleware для добавления дополнительных заголовков безопасности к HTTP-ответам.
+    Добавляет заголовки безопасности в HTTP-ответы
     """
-    
-    def process_response(self, request, response):
-        # Content Security Policy (CSP)
-        # Ограничивает источники содержимого, которые может загружать браузер
-        response["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: https://via.placeholder.com; "
-            "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none'; "
-            "form-action 'self'; "
-            "object-src 'none'; "
-            "base-uri 'self';"
-        )
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
         
-        # X-Content-Type-Options
-        # Предотвращает MIME-сниффинг браузерами
-        response["X-Content-Type-Options"] = "nosniff"
-        
-        # X-XSS-Protection
-        # Активирует встроенную в браузеры защиту от XSS
-        response["X-XSS-Protection"] = "1; mode=block"
-        
-        # Referrer-Policy
-        # Контролирует, сколько реферальной информации отправляется
-        response["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        
-        # Permissions-Policy (бывший Feature-Policy)
-        # Ограничивает доступ к различным API браузера
-        response["Permissions-Policy"] = (
-            "camera=(), "
-            "microphone=(), "
-            "geolocation=(), "
-            "accelerometer=(), "
-            "gyroscope=(), "
-            "magnetometer=(), "
-            "payment=()"
-        )
+        # Добавляем заголовки безопасности
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['X-XSS-Protection'] = '1; mode=block'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response['Feature-Policy'] = "geolocation 'self'; microphone 'none'; camera 'none'"
+        response['Permissions-Policy'] = "geolocation=(self), microphone=(), camera=()"
         
         return response
 
 
-class XSSProtectionMiddleware(MiddlewareMixin):
+class XSSProtectionMiddleware:
     """
-    Middleware для дополнительной защиты от XSS-атак путем фильтрации входящих параметров.
+    Защита от XSS-атак для входящих данных
     """
-    
-    def process_request(self, request):
-        # Проверяем GET и POST параметры на наличие подозрительных шаблонов
-        for key, value in request.GET.items():
-            request.GET = self._sanitize_data(request.GET, key, value)
-        
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Проверка входящих POST и GET данных
         if request.method == 'POST':
-            for key, value in request.POST.items():
-                request.POST = self._sanitize_data(request.POST, key, value)
+            self._sanitize_post_data(request)
         
-        return None
-    
-    def _sanitize_data(self, data_dict, key, value):
-        """
-        Очищает потенциально опасные входные данные.
-        Обратите внимание, что это базовая защита, и Django уже имеет встроенную защиту от XSS.
-        """
-        if isinstance(value, str):
-            # Список опасных шаблонов
-            dangerous_patterns = ['<script', 'javascript:', 'data:text/html', 'onerror=', 'onload=']
+        if request.GET:
+            self._sanitize_get_data(request)
             
-            # Проверяем каждый опасный шаблон
-            for pattern in dangerous_patterns:
-                if pattern.lower() in value.lower():
-                    # Заменяем опасный контент или устанавливаем пустое значение
-                    data_dict = data_dict.copy()
-                    data_dict[key] = ''
-                    break
-                    
-        return data_dict
+        return self.get_response(request)
+    
+    def _sanitize_post_data(self, request):
+        """Очистка данных POST-запроса"""
+        # Удаляем потенциально опасные символы из POST данных
+        for key in request.POST:
+            if isinstance(request.POST[key], str):
+                request.POST._mutable = True
+                request.POST[key] = self._clean_xss(request.POST[key])
+                request.POST._mutable = False
+    
+    def _sanitize_get_data(self, request):
+        """Очистка данных GET-запроса"""
+        # Удаляем потенциально опасные символы из GET данных
+        for key in request.GET:
+            if isinstance(request.GET[key], str):
+                request.GET._mutable = True
+                request.GET[key] = self._clean_xss(request.GET[key])
+                request.GET._mutable = False
+    
+    def _clean_xss(self, value):
+        """Очистка строки от потенциальных XSS-атак"""
+        # Заменяем потенциально опасные символы
+        value = value.replace('<script>', '')
+        value = value.replace('</script>', '')
+        value = value.replace('javascript:', '')
+        value = value.replace('onerror=', '')
+        value = value.replace('onload=', '')
+        return value
 
 
-class RateLimitMiddleware(MiddlewareMixin):
+class RateLimitMiddleware:
     """
-    Middleware для ограничения количества запросов от одного IP-адреса за определенный период времени.
-    Защищает от DoS и brute force атак.
+    Ограничение количества запросов (защита от DDoS)
     """
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.requests = {}
+        self.max_requests = 100  # Максимальное количество запросов
+        self.window_seconds = 60  # Окно в секундах
+
+    def __call__(self, request):
+        import time
+        
+        # Получаем IP-адрес из запроса
+        ip = self._get_client_ip(request)
+        current_time = int(time.time())
+        
+        # Инициализация счетчика для IP, если его еще нет
+        if ip not in self.requests:
+            self.requests[ip] = {'count': 0, 'timestamp': current_time}
+        
+        # Сброс счетчика, если прошло достаточно времени
+        if current_time - self.requests[ip]['timestamp'] > self.window_seconds:
+            self.requests[ip] = {'count': 0, 'timestamp': current_time}
+        
+        # Увеличиваем счетчик запросов
+        self.requests[ip]['count'] += 1
+        
+        # Если превышен лимит запросов
+        if self.requests[ip]['count'] > self.max_requests:
+            from django.http import HttpResponseTooManyRequests
+            return HttpResponseTooManyRequests("Too many requests. Please try again later.")
+        
+        return self.get_response(request)
     
-    def process_request(self, request):
-        # Получаем IP-адрес
-        ip = self.get_client_ip(request)
-        
-        # Игнорируем локальные и тестовые адреса
-        if ip in ['127.0.0.1', 'localhost']:
-            return None
-        
-        # Получаем текущее время
-        now = time.time()
-        
-        # Ключ для хранения временных меток запросов
-        key = f'rate_limit_{ip}'
-        
-        # Максимальное количество запросов за период
-        max_requests = 100
-        # Период в секундах (60 секунд = 1 минута)
-        period = 60
-        
-        # Получаем список временных меток предыдущих запросов
-        request_times = cache.get(key, [])
-        
-        # Фильтруем временные метки, оставляя только те, которые попадают в текущий период
-        request_times = [t for t in request_times if now - t < period]
-        
-        # Если количество запросов превышает лимит, возвращаем ошибку 429 (Too Many Requests)
-        if len(request_times) >= max_requests:
-            response = HttpResponse(
-                "Слишком много запросов. Пожалуйста, попробуйте позже.",
-                status=429
-            )
-            response["Retry-After"] = str(period)
-            return response
-        
-        # Добавляем текущую временную метку
-        request_times.append(now)
-        
-        # Сохраняем обновленный список в кеше
-        cache.set(key, request_times, period * 2)
-        
-        return None
-    
-    def get_client_ip(self, request):
-        """
-        Метод для получения IP-адреса клиента, учитывая возможные прокси-серверы.
-        """
+    def _get_client_ip(self, request):
+        """Получаем IP-адрес клиента"""
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            # Берем первый IP из списка (реальный IP клиента)
-            ip = x_forwarded_for.split(',')[0].strip()
+            ip = x_forwarded_for.split(',')[0]
         else:
             ip = request.META.get('REMOTE_ADDR')
         return ip 

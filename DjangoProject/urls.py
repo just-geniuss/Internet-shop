@@ -18,6 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from catalog.views import robots_txt
+from django.contrib.sitemaps.views import sitemap
+from catalog.sitemaps import ProductSitemap, CategorySitemap, StaticViewSitemap
+
+# Регистрируем карты сайта
+sitemaps = {
+    'products': ProductSitemap,
+    'categories': CategorySitemap,
+    'static': StaticViewSitemap,
+}
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +35,8 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     path('users/', include('users.urls')),
     path('integration/', include('integration_1c.urls')),
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:
