@@ -1,84 +1,194 @@
 {% extends 'base.html' %}
 
+{% block meta_title %}{{ product.get_meta_title }}{% endblock %}
+{% block meta_description %}{{ product.get_meta_description }}{% endblock %}
+{% block meta_keywords %}{% if product.meta_keywords %}{{ product.meta_keywords }}{% else %}{{ product.name }}, {{ product.sku }}, {{ product.manufacturer.name }}, запчасти, купить, Орловская область{% endif %}{% endblock %}
+
+{% block og_title %}{{ product.name }} {{ product.sku }}{% endblock %}
+{% block og_description %}{{ product.get_meta_description }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ product.name }} {{ product.sku }}{% endblock %}
+{% block twitter_description %}{{ product.get_meta_description }}{% endblock %}
+{% block twitter_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.image.url }}{% endif %}{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{{ product.get_schema_org|safe }}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:index' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Категории",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'catalog:categories' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.category.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ product.category.get_absolute_url }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ product.name }}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <!-- Хлебные крошки -->
 <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'catalog:index' %}">Главная</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'catalog:categories' %}">Категории</a></li>
-        <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    <ol class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'catalog:index' %}" itemprop="item"><span itemprop="name">Главная</span></a>
+            <meta itemprop="position" content="1" />
+        </li>
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{% url 'catalog:categories' %}" itemprop="item"><span itemprop="name">Категории</span></a>
+            <meta itemprop="position" content="2" />
+        </li>
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="{{ product.category.get_absolute_url }}" itemprop="item"><span itemprop="name">{{ product.category.name }}</span></a>
+            <meta itemprop="position" content="3" />
+        </li>
+        <li class="breadcrumb-item active" aria-current="page" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <span itemprop="name">{{ product.name }}</span>
+            <meta itemprop="position" content="4" />
+        </li>
     </ol>
 </nav>
 
-<div class="row mb-5">
-    <div class="col-md-5 mb-4">
-        <div class="card">
-            <div class="card-body text-center">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="product-image img-fluid" alt="{{ product.name }}">
-                {% else %}
-                    <div class="no-image-placeholder product-image-placeholder">
-                        <i class="fas fa-car-battery fa-4x"></i>
-                        <div class="mt-3">Изображение отсутствует</div>
-                        <small class="text-muted mt-2">Артикул: {{ product.sku }}</small>
+<div class="row mb-5" itemscope itemtype="https://schema.org/Product" data-aos="fade-up">
+    <meta itemprop="name" content="{{ product.name }}" />
+    <meta itemprop="sku" content="{{ product.sku }}" />
+    <meta itemprop="description" content="{{ product.description|default:product.get_meta_description }}" />
+    <link itemprop="url" href="{{ request.build_absolute_uri }}" />
+    
+    {% if product.brand %}<meta itemprop="brand" content="{{ product.brand }}" />{% endif %}
+    {% if product.gtin %}<meta itemprop="gtin" content="{{ product.gtin }}" />{% endif %}
+    {% if product.mpn %}<meta itemprop="mpn" content="{{ product.mpn }}" />{% endif %}
+    
+    <div class="col-lg-5 col-md-6 mb-4">
+        <div class="card product-gallery h-100 border-0">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center p-4">
+                <div class="main-image-container position-relative mb-3 w-100 text-center">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="main-product-image img-fluid rounded shadow-sm" alt="{{ product.name }}" itemprop="image" loading="lazy" width="400" height="400" id="main-product-image">
+                        
+                        <!-- Кнопки увеличения/уменьшения изображения -->
+                        <div class="zoom-controls position-absolute bottom-0 end-0 p-2">
+                            <button class="btn btn-sm btn-light shadow-sm me-1" id="zoom-in" title="Увеличить">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light shadow-sm" id="zoom-out" title="Уменьшить">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="no-image-placeholder main-product-image-placeholder rounded shadow-sm">
+                            <i class="fas fa-car-battery fa-4x text-muted"></i>
+                            <div class="mt-3 text-muted">Изображение отсутствует</div>
+                            <small class="text-muted mt-2">Артикул: {{ product.sku }}</small>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Дополнительные изображения, если есть -->
+                {% if product.images.exists %}
+                    <div class="additional-images mt-3 w-100">
+                        <div class="d-flex flex-wrap justify-content-center">
+                            {% if product.image %}
+                                <div class="thumb-image-container m-1 active">
+                                    <img src="{{ product.image.url }}" class="thumb-image img-thumbnail" data-src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" width="70" height="70">
+                                </div>
+                            {% endif %}
+                            
+                            {% for image in product.images.all %}
+                                <div class="thumb-image-container m-1">
+                                    <img src="{{ image.image.url }}" class="thumb-image img-thumbnail" data-src="{{ image.image.url }}" alt="{{ image.alt|default:product.name }}" loading="lazy" width="70" height="70">
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
-        
-        <!-- Дополнительные изображения, если есть -->
-        {% if product.images.exists %}
-            <div class="row mt-3">
-                {% for image in product.images.all %}
-                    <div class="col-3 mb-3">
-                        <img src="{{ image.image.url }}" class="img-thumbnail" alt="{{ image.alt|default:product.name }}">
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
     </div>
     
-    <div class="col-md-7">
-        <div class="card product-info">
-            <div class="card-body">
-                <h1 class="card-title mb-3">{{ product.name }}</h1>
+    <div class="col-lg-7 col-md-6">
+        <div class="card product-info h-100 border-0">
+            <div class="card-body p-4">
+                <h1 class="card-title mb-3 product-name" itemprop="name">{{ product.name }}</h1>
                 
-                <p class="product-sku">Артикул: {{ product.sku }}</p>
-                
-                <div class="mb-3">
-                    <span class="me-2">Производитель:</span>
-                    <span class="badge bg-secondary">{{ product.manufacturer.name }}</span>
+                <div class="mb-3 d-flex flex-wrap align-items-center">
+                    <span class="me-3 badge bg-secondary text-light fs-6 mb-2">
+                        <i class="fas fa-barcode me-1"></i> Артикул: <span itemprop="sku" class="fw-bold">{{ product.sku }}</span>
+                    </span>
+                    
+                    <span class="me-3 badge bg-secondary text-light fs-6 mb-2">
+                        <i class="fas fa-industry me-1"></i> Производитель: <span itemprop="brand" class="fw-bold">{{ product.manufacturer.name }}</span>
+                    </span>
+                    
                     {% if product.manufacturer.country %}
-                        <span class="badge bg-light text-dark">{{ product.manufacturer.country }}</span>
+                        <span class="badge bg-light text-dark fs-6 mb-2">
+                            <i class="fas fa-globe me-1"></i> {{ product.manufacturer.country }}
+                        </span>
                     {% endif %}
                 </div>
                 
-                <div class="product-price mb-4">{{ product.price }} ₽</div>
-                
-                <div class="mb-4">
-                    {% if product.stock > 10 %}
-                        <p class="product-stock stock-available"><i class="fas fa-check-circle"></i> В наличии (более 10 шт.)</p>
-                    {% elif product.stock > 0 %}
-                        <p class="product-stock stock-low"><i class="fas fa-exclamation-circle"></i> Осталось {{ product.stock }} шт.</p>
-                    {% else %}
-                        <p class="product-stock stock-not-available"><i class="fas fa-times-circle"></i> Нет в наличии</p>
-                    {% endif %}
+                <div class="product-price-container d-flex align-items-center mb-4 p-3 bg-light rounded">
+                    <div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                        <meta itemprop="price" content="{{ product.price }}" />
+                        <meta itemprop="priceCurrency" content="RUB" />
+                        {% if product.stock > 0 %}
+                            <link itemprop="availability" href="https://schema.org/InStock" />
+                        {% else %}
+                            <link itemprop="availability" href="https://schema.org/OutOfStock" />
+                        {% endif %}
+                        <span class="fs-2 fw-bold text-primary">{{ product.price }} ₽</span>
+                    </div>
+                    
+                    <div class="stock-info ms-auto">
+                        {% if product.stock > 10 %}
+                            <p class="product-stock stock-available mb-0"><i class="fas fa-check-circle text-success me-1"></i> В наличии (более 10 шт.)</p>
+                        {% elif product.stock > 0 %}
+                            <p class="product-stock stock-low mb-0"><i class="fas fa-exclamation-circle text-warning me-1"></i> Осталось {{ product.stock }} шт.</p>
+                        {% else %}
+                            <p class="product-stock stock-not-available mb-0"><i class="fas fa-times-circle text-danger me-1"></i> Нет в наличии</p>
+                        {% endif %}
+                    </div>
                 </div>
                 
                 {% if product.stock > 0 %}
                     <form action="{% url 'orders:add_to_cart' product.id %}" method="post" class="mb-4">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-4 col-5">
+                        <div class="row g-3">
+                            <div class="col-lg-4 col-md-5 col-6">
                                 <div class="input-group">
-                                    <span class="input-group-text">Кол-во</span>
+                                    <span class="input-group-text bg-light">Кол-во</span>
                                     <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}">
                                 </div>
                             </div>
-                            <div class="col-md-8 col-7">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-shopping-cart me-2"></i> В корзину
+                            <div class="col-lg-8 col-md-7 col-6">
+                                <button type="submit" class="btn btn-primary w-100 d-flex justify-content-center align-items-center">
+                                    <i class="fas fa-shopping-cart me-2"></i> <span>В корзину</span>
                                 </button>
                             </div>
                         </div>
@@ -86,70 +196,145 @@
                 {% endif %}
                 
                 <!-- Информация о самовывозе -->
-                <div class="alert alert-info mb-4">
+                <div class="delivery-info alert alert-info mb-4 p-3">
                     <div class="d-flex">
-                        <div class="me-3">
-                            <i class="fas fa-info-circle fa-2x"></i>
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-info-circle fa-2x text-primary"></i>
                         </div>
                         <div>
-                            <h5 class="mb-1">Доступен самовывоз</h5>
+                            <h5 class="mb-1 fw-bold">Доступен самовывоз</h5>
                             <p class="mb-1">п. Куликовский, ул. Придорожная, дом 1С2</p>
                             <p class="mb-0">Магазин "Первых" (ООО "Купер")</p>
                         </div>
                     </div>
                 </div>
                 
-                <hr>
+                <!-- Дополнительные действия -->
+                <div class="action-buttons mb-4 d-flex flex-wrap">
+                    <button class="btn btn-outline-secondary me-2 mb-2" id="print-product">
+                        <i class="fas fa-print me-1"></i> Распечатать
+                    </button>
+                    <button class="btn btn-outline-secondary me-2 mb-2" data-bs-toggle="modal" data-bs-target="#shareModal">
+                        <i class="fas fa-share-alt me-1"></i> Поделиться
+                    </button>
+                    <button class="btn btn-outline-secondary mb-2" id="ask-question">
+                        <i class="fas fa-question-circle me-1"></i> Задать вопрос
+                    </button>
+                </div>
                 
-                <!-- Атрибуты товара, если есть -->
-                {% if product.attribute_values.exists %}
-                    <h5 class="mt-4 mb-3">Характеристики</h5>
-                    <table class="table table-striped">
-                        <tbody>
-                            {% for attr_value in product.attribute_values.all %}
-                                <tr>
-                                    <th scope="row">{{ attr_value.attribute.name }}</th>
-                                    <td>{{ attr_value.value }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% endif %}
-                
-                <!-- Совместимые автомобили, если указаны -->
-                {% if product.compatible_cars.exists %}
-                    <h5 class="mt-4 mb-3">Совместимость с автомобилями</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Марка</th>
-                                    <th>Модель</th>
-                                    <th>Годы выпуска</th>
-                                    <th>Двигатель</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for car in product.compatible_cars.all %}
-                                    <tr>
-                                        <td>{{ car.brand }}</td>
-                                        <td>{{ car.model }}</td>
-                                        <td>{{ car.year_start }}{% if car.year_end %} - {{ car.year_end }}{% else %} - н.в.{% endif %}</td>
-                                        <td>{{ car.engine_type|default:"-" }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <!-- Табы с информацией о товаре -->
+                <div class="product-tabs mb-4">
+                    <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">
+                                Описание
+                            </button>
+                        </li>
+                        {% if product.attribute_values.exists %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs" type="button" role="tab" aria-controls="specs" aria-selected="false">
+                                Характеристики
+                            </button>
+                        </li>
+                        {% endif %}
+                        {% if product.compatible_cars.exists %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="compatibility-tab" data-bs-toggle="tab" data-bs-target="#compatibility" type="button" role="tab" aria-controls="compatibility" aria-selected="false">
+                                Совместимость
+                            </button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="productTabContent">
+                        <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                            {% if product.description %}
+                                <div class="product-description" itemprop="description">
+                                    {{ product.description|linebreaks }}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Описание товара отсутствует</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if product.attribute_values.exists %}
+                        <div class="tab-pane fade" id="specs" role="tabpanel" aria-labelledby="specs-tab">
+                            <table class="table table-striped table-hover">
+                                <tbody>
+                                    {% for attr_value in product.attribute_values.all %}
+                                        <tr itemprop="additionalProperty" itemscope itemtype="https://schema.org/PropertyValue">
+                                            <th scope="row" itemprop="name" width="40%" class="text-secondary">{{ attr_value.attribute.name }}</th>
+                                            <td itemprop="value">{{ attr_value.value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                        
+                        {% if product.compatible_cars.exists %}
+                        <div class="tab-pane fade" id="compatibility" role="tabpanel" aria-labelledby="compatibility-tab">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Марка</th>
+                                            <th>Модель</th>
+                                            <th>Годы выпуска</th>
+                                            <th>Двигатель</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for car in product.compatible_cars.all %}
+                                            <tr>
+                                                <td class="fw-bold">{{ car.brand }}</td>
+                                                <td>{{ car.model }}</td>
+                                                <td>{{ car.year_start }}{% if car.year_end %} - {{ car.year_end }}{% else %} - н.в.{% endif %}</td>
+                                                <td>{{ car.engine_type|default:"-" }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                {% endif %}
-                
-                <!-- Описание товара -->
-                {% if product.description %}
-                    <h5 class="mt-4 mb-3">Описание</h5>
-                    <div class="product-description">
-                        {{ product.description|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для шаринга -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareModalLabel">Поделиться товаром</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="share-buttons d-flex flex-wrap justify-content-center">
+                    <a href="https://vk.com/share.php?url={{ request.build_absolute_uri }}" class="btn btn-outline-primary m-2" target="_blank" rel="noopener">
+                        <i class="fab fa-vk fa-lg"></i> ВКонтакте
+                    </a>
+                    <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ product.name }} {{ product.sku }}" class="btn btn-outline-primary m-2" target="_blank" rel="noopener">
+                        <i class="fab fa-telegram fa-lg"></i> Telegram
+                    </a>
+                    <a href="https://wa.me/?text={{ product.name }} {{ product.sku }} {{ request.build_absolute_uri }}" class="btn btn-outline-primary m-2" target="_blank" rel="noopener">
+                        <i class="fab fa-whatsapp fa-lg"></i> WhatsApp
+                    </a>
+                    <a href="mailto:?subject={{ product.name }} {{ product.sku }}&body={{ request.build_absolute_uri }}" class="btn btn-outline-primary m-2">
+                        <i class="fas fa-envelope fa-lg"></i> Email
+                    </a>
+                </div>
+                <div class="mt-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="product-url" value="{{ request.build_absolute_uri }}" readonly>
+                        <button class="btn btn-primary" id="copy-url" type="button">
+                            <i class="fas fa-copy"></i> Копировать
+                        </button>
                     </div>
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -157,49 +342,253 @@
 
 <!-- Похожие товары -->
 {% if related_products %}
-    <h2 class="mb-4">Похожие товары</h2>
-    <div class="row">
-        {% for prod in related_products %}
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <div class="card h-100">
-                    <div class="text-center pt-3">
-                        {% if prod.image %}
-                            <img src="{{ prod.image.url }}" class="card-img-top" alt="{{ prod.name }}">
-                        {% else %}
-                            <div class="no-image-placeholder">
-                                <i class="fas fa-car-battery"></i>
-                                <div>Нет фото</div>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">{{ prod.name }}</h5>
-                        <p class="card-text text-muted">Артикул: {{ prod.sku }}</p>
-                        <p class="card-text price mt-auto">{{ prod.price }} ₽</p>
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ prod.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Подробнее</a>
-                            {% if prod.stock > 0 %}
-                                <form action="{% url 'orders:add_to_cart' prod.id %}" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-shopping-cart"></i>
-                                    </button>
-                                </form>
+    <section class="related-products mt-5 pt-3" data-aos="fade-up">
+        <h2 class="h3 mb-4">Похожие товары</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+            {% for product in related_products %}
+                <div class="col" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:1|add:"00" }}">
+                    <div class="card h-100 product-card">
+                        <div class="position-relative">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top p-3 lazy" data-src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" width="200" height="200">
+                            {% else %}
+                                <div class="no-image-placeholder p-3">
+                                    <i class="fas fa-car-battery fa-3x text-muted"></i>
+                                    <div class="mt-2 small text-muted">Нет фото</div>
+                                </div>
                             {% endif %}
+                            
+                            <!-- Бейджи -->
+                            <div class="position-absolute top-0 start-0 p-2">
+                                {% if product.created|date:'Y-m-d' > '2023-01-01'|date:'Y-m-d' %}
+                                    <span class="badge bg-success mb-1 d-block">Новинка</span>
+                                {% endif %}
+                                {% if product.stock <= 3 and product.stock > 0 %}
+                                    <span class="badge bg-warning mb-1 d-block">Осталось мало</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h3 class="card-title h6" title="{{ product.name }}">
+                                <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark stretched-link">{{ product.name }}</a>
+                            </h3>
+                            
+                            <!-- Доступность товара -->
+                            {% if product.stock > 0 %}
+                                <div class="text-success small mb-2"><i class="fas fa-check-circle"></i> В наличии</div>
+                            {% else %}
+                                <div class="text-danger small mb-2"><i class="fas fa-times-circle"></i> Нет в наличии</div>
+                            {% endif %}
+                            
+                            <!-- Цена -->
+                            <div class="product-price mt-auto">
+                                <span class="fs-5 fw-bold text-primary">{{ product.price }} ₽</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
+    </section>
 {% endif %}
 
 <!-- SEO блок -->
-<div class="seo-text mt-5">
-    <h4>Купить {{ product.name }} в магазине "Первых"</h4>
+<div class="seo-text mt-5 p-4 bg-light rounded" data-aos="fade-up">
+    <h2 class="h3">Купить {{ product.name }} в магазине "Первых"</h2>
     <p>В магазине автозапчастей "Первых" вы можете приобрести {{ product.name }} по доступной цене {{ product.price }} ₽. Высокое качество и гарантия от производителя {{ product.manufacturer.name }}.</p>
     <p>Самовывоз доступен из нашего магазина по адресу: п. Куликовский, ул. Придорожная, дом 1С2. Для юридических лиц предоставляем услугу доставки по всей Орловской области.</p>
-    <p>Телефон для связи: +7(910)2069666, Email: pervyhorel@yandex.ru</p>
+    <p>Телефон для связи: <a href="tel:+79102069666" class="text-primary">+7(910)2069666</a>, Email: <a href="mailto:pervyhorel@yandex.ru" class="text-primary">pervyhorel@yandex.ru</a></p>
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Переключение изображений в галерее
+    const mainImage = document.getElementById('main-product-image');
+    const thumbImages = document.querySelectorAll('.thumb-image');
+    
+    if (mainImage && thumbImages.length > 0) {
+        thumbImages.forEach(img => {
+            img.addEventListener('click', function() {
+                // Меняем основное изображение
+                mainImage.src = this.dataset.src;
+                
+                // Переключаем активный класс
+                document.querySelector('.thumb-image-container.active')?.classList.remove('active');
+                this.parentElement.classList.add('active');
+            });
+        });
+    }
+    
+    // Увеличение/уменьшение изображения
+    const zoomIn = document.getElementById('zoom-in');
+    const zoomOut = document.getElementById('zoom-out');
+    let scale = 1;
+    
+    if (zoomIn && zoomOut && mainImage) {
+        zoomIn.addEventListener('click', function() {
+            if (scale < 2) {
+                scale += 0.2;
+                mainImage.style.transform = `scale(${scale})`;
+            }
+        });
+        
+        zoomOut.addEventListener('click', function() {
+            if (scale > 0.6) {
+                scale -= 0.2;
+                mainImage.style.transform = `scale(${scale})`;
+            }
+        });
+        
+        // Сброс увеличения при клике на изображение
+        mainImage.addEventListener('click', function() {
+            scale = 1;
+            mainImage.style.transform = `scale(1)`;
+        });
+    }
+    
+    // Копирование URL в буфер обмена
+    const copyButton = document.getElementById('copy-url');
+    const productUrl = document.getElementById('product-url');
+    
+    if (copyButton && productUrl) {
+        copyButton.addEventListener('click', function() {
+            productUrl.select();
+            document.execCommand('copy');
+            
+            // Меняем текст кнопки на "Скопировано"
+            const originalText = copyButton.innerHTML;
+            copyButton.innerHTML = '<i class="fas fa-check"></i> Скопировано';
+            
+            // Возвращаем обратно через 2 секунды
+            setTimeout(() => {
+                copyButton.innerHTML = originalText;
+            }, 2000);
+        });
+    }
+    
+    // Печать страницы
+    const printButton = document.getElementById('print-product');
+    
+    if (printButton) {
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
+    }
+    
+    // Кнопка "Задать вопрос"
+    const askButton = document.getElementById('ask-question');
+    
+    if (askButton) {
+        askButton.addEventListener('click', function() {
+            // Можно заменить на открытие формы или переход на страницу контактов
+            window.location.href = '#contacts';
+        });
+    }
+});
+</script>
+{% endblock %}
+
+<style>
+/* Стили для страницы товара */
+.product-name {
+    font-weight: 700;
+}
+
+.product-gallery {
+    transition: all 0.3s ease;
+}
+
+.main-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    height: 350px;
+    border-radius: 8px;
+}
+
+.main-product-image {
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.main-product-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 350px;
+    width: 100%;
+}
+
+.thumb-image-container {
+    width: 70px;
+    height: 70px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.thumb-image-container.active {
+    border-color: var(--primary-color);
+}
+
+.thumb-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-price-container {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+}
+
+.product-tabs .nav-link {
+    color: #555;
+}
+
+.product-tabs .nav-link.active {
+    font-weight: 500;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.delivery-info {
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Адаптивность */
+@media (max-width: 767.98px) {
+    .main-image-container {
+        height: 250px;
+    }
+    
+    .main-product-image-placeholder {
+        height: 250px;
+    }
+}
+
+@media print {
+    .product-tabs button {
+        display: none;
+    }
+    
+    .product-tabs .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+    }
+    
+    .action-buttons, 
+    .zoom-controls,
+    footer,
+    nav {
+        display: none !important;
+    }
+}
+</style>
 {% endblock %} 

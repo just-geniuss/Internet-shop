@@ -311,7 +311,7 @@ img[src$=".svg"] {
 
 /* Контактная полоса */
 .contact-strip {
-    background-color: var(--secondary-color) !important;
+    background-color: var(--secondary-color);
     padding: var(--spacing-sm) 0;
     font-size: var(--small-font-size);
     color: var(--dark-muted);
@@ -722,7 +722,8 @@ img[src$=".svg"] {
 .product-badge {
     position: absolute;
     top: 10px;
-    right: 10px;
+    left: 50%; /* Центрирование по горизонтали */
+    transform: translateX(-50%);
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
     font-size: 0.75rem;
@@ -730,6 +731,16 @@ img[src$=".svg"] {
     z-index: 10;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.badge.position-absolute {
+    left: 45%;
+    transform: translateX(-100%);
+    top: 5px; /* Расположение сверху, можно подкорректировать */
+}
+
+.badge.font-new {
+    font-size: medium;
 }
 
 .badge-new {
