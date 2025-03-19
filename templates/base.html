@@ -371,6 +371,15 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #479e42;
         }
+        
+        /* Стили для изменения цвета иконок в зависимости от темы */
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        [data-theme="dark"] .text-primary {
+            color: var(--primary-hover) !important;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
