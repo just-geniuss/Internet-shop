@@ -5,9 +5,9 @@ services:
     image: postgres:15
     container_name: postgres-db-dev
     environment:
-      POSTGRES_DB: autoparts_shop
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME:-autoparts_shop}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -17,13 +17,13 @@ services:
   web:
     build: .
     container_name: Internet-shop-dev
-    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh && python manage.py runserver 0.0.0.0:8443"
+    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh && python manage.py runserver 0.0.0.0:8899"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "127.0.0.1:8443:8443"
+      - "127.0.0.1:8899:8899"
     env_file:
       - .env
     depends_on:
