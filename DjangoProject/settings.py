@@ -11,43 +11,55 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Инициализация django-environ
+env = environ.Env(
+    DEBUG=(bool, False),
+    SECURE_SSL_REDIRECT=(bool, False),
+    SESSION_COOKIE_SECURE=(bool, False),
+    CSRF_COOKIE_SECURE=(bool, False),
+    EMAIL_USE_TLS=(bool, True),
+    MAX_UPLOAD_SIZE=(int, 5242880),
+)
+
+# Чтение файла .env если он существует
+environ.Env.read_env(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-siq)ll)jrmr8qqe$x!wv+v-alk3858%z%gc9(abgklwpcf+a+-'
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-siq)ll)jrmr8qqe$x!wv+v-alk3858%z%gc9(abgklwpcf+a+-')
 
 # Токен для API интеграции с 1С
-INTEGRATION_1C_TOKEN = 'your-secure-token-for-1c-integration'
+INTEGRATION_1C_TOKEN = env('INTEGRATION_1C_TOKEN', default='your-secure-token-for-1c-integration')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-# В продакшене переключить на False и указать реальные домены
-# DEBUG = False
-# ALLOWED_HOSTS = ['example.com', 'www.example.com']
-
-ALLOWED_HOSTS = []
+# Allowed hosts
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', '0.0.0.0'])
 
 # Настройки безопасности
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'  # Защита от clickjacking
 
-# Настройки для HTTPS (активировать в продакшене)
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_HTTPONLY = True
-# SESSION_COOKIE_SAMESITE = 'Lax'
-# SECURE_SSL_REDIRECT = True
-# SECURE_HSTS_SECONDS = 31536000  # 1 год
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+# Настройки для HTTPS (берутся из .env)
+CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')
+SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE')
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000  # 1 год
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Настройки для защиты от SQL-инъекций
 # Использовать параметризованные запросы вместо raw SQL
@@ -142,29 +154,17 @@ WSGI_APPLICATION = 'DjangoProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-import os
-
-# Определяем, запущен ли проект в Docker
-if os.environ.get('DATABASE_URL'):
-    # Настройки для Docker
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'autoparts_shop',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres',
-            'HOST': 'db',  # имя сервиса в docker-compose
-            'PORT': '5432',
-        }
+# Настройки базы данных из .env
+DATABASES = {
+    'default': {
+        'ENGINE': env('DB_ENGINE', default='django.db.backends.sqlite3'),
+        'NAME': env('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
+        'USER': env('DB_USER', default=''),
+        'PASSWORD': env('DB_PASSWORD', default=''),
+        'HOST': env('DB_HOST', default=''),
+        'PORT': env('DB_PORT', default=''),
     }
-else:
-    # Настройки для локальной разработки
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Internationalization
@@ -243,3 +243,15 @@ LOGGING = {
         },
     },
 }
+
+# Email настройки из .env
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='')
+EMAIL_PORT = env('EMAIL_PORT', default=587)
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@example.com')
+
+# Максимальный размер загружаемых файлов
+MAX_UPLOAD_SIZE = env('MAX_UPLOAD_SIZE')

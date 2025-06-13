@@ -3,35 +3,40 @@ version: "3.9"
 services:
   db:
     image: postgres:15
-    container_name: postgres-db
+    container_name: postgres-db-dev
     environment:
       POSTGRES_DB: autoparts_shop
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     restart: unless-stopped
+    networks:
+      - app-network
 
   web:
     build: .
-    container_name: Internet-shop
-    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh && gunicorn DjangoProject.wsgi:application --bind 0.0.0.0:8000"
+    container_name: Internet-shop-dev
+    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh && python manage.py runserver 0.0.0.0:8443"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "8000:8000"
-    environment:
-      - DEBUG=0
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/autoparts_shop
+      - "127.0.0.1:8443:8443"
+    env_file:
+      - .env
     depends_on:
       - db
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+
+networks:
+  app-network:
+    driver: bridge

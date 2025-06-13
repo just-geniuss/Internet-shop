@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres-db-prod
+    environment:
+      POSTGRES_DB: autoparts_shop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - app-network
+
+  web:
+    build: .
+    container_name: Internet-shop-prod
+    command: sh -c "chmod +x entrypoint.sh && ./entrypoint.sh && gunicorn DjangoProject.wsgi:application --bind 0.0.0.0:8443 --workers 3 --timeout 30"
+    volumes:
+      - static_volume_prod:/app/staticfiles
+      - media_volume_prod:/app/media
+      - ./logs:/app/logs
+    ports:
+      - "127.0.0.1:8443:8443"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - app-network
+
+volumes:
+  postgres_data_prod:
+  static_volume_prod:
+  media_volume_prod:
+
+networks:
+  app-network:
+    driver: bridge
