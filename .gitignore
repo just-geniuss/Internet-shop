@@ -86,3 +86,12 @@ sessions/
 
 # Специальный файл для хранения информации о суперпользователе - исключаем
 superuser_info.json
+
+# Docker
+.dockerignore
+postgres_data/
+static_volume/
+media_volume/
+
+# Docker Compose override файлы
+docker-compose.override.yml

@@ -142,24 +142,29 @@ WSGI_APPLICATION = 'DjangoProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+import os
 
-# PostgreSQL configuration (commented for now)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'autoparts_shop',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# Определяем, запущен ли проект в Docker
+if os.environ.get('DATABASE_URL'):
+    # Настройки для Docker
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'autoparts_shop',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': 'db',  # имя сервиса в docker-compose
+            'PORT': '5432',
+        }
+    }
+else:
+    # Настройки для локальной разработки
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Internationalization
