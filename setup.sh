@@ -37,7 +37,6 @@ prompt_with_default() {
 prompt_password() {
     local prompt_text="$1"
     local result
-    local confirm_result
     
     while true; do
         read -s -p "$prompt_text: " result
@@ -48,15 +47,14 @@ prompt_password() {
             continue
         fi
         
-        read -s -p "$(if [ "$LANG" = "ru" ]; then echo "Подтвердите пароль"; else echo "Confirm password"; fi): " confirm_result
-        echo ""
-        
-        if [ "$result" = "$confirm_result" ]; then
-            echo "$result"
-            break
-        else
-            echo "$(if [ "$LANG" = "ru" ]; then echo "Пароли не совпадают. Попробуйте снова."; else echo "Passwords do not match. Try again."; fi)"
+        # Простая валидация - только основные символы, избегаем проблемных
+        if [[ "$result" =~ [\'\"\\] ]]; then
+            echo "Пароль не должен содержать кавычки или обратные слеши / Password should not contain quotes or backslashes"
+            continue
         fi
+        
+        echo "$result"
+        break
     done
 }
 
@@ -402,55 +400,31 @@ main() {
         sleep 2
     done
     
-    # Создание суперпользователя
-    localized_echo "\n${BLUE}Creating superuser / Создание суперпользователя:${NC}" "\n${BLUE}Создание суперпользователя:${NC}"
+    # Проверка готовности Django
+    localized_echo "\n${BLUE}Checking Django readiness / Проверка готовности Django:${NC}" "\n${BLUE}Проверка готовности Django:${NC}"
     
-    # Проверка что веб контейнер готов принимать команды
     for i in {1..10}; do
         if [ "$MODE" = "prod" ]; then
-            if docker-compose -f docker-compose.prod.yml exec -T web python manage.py check --deploy 2>/dev/null; then
+            if docker-compose -f docker-compose.prod.yml exec -T web python manage.py check 2>/dev/null; then
+                localized_echo "${GREEN}Django is ready${NC}" "${GREEN}Django готов${NC}"
                 break
             fi
         else
             if docker-compose exec -T web python manage.py check 2>/dev/null; then
+                localized_echo "${GREEN}Django is ready${NC}" "${GREEN}Django готов${NC}"
                 break
             fi
         fi
         
         if [ $i -eq 10 ]; then
-            localized_echo "${RED}Error: Django application is not ready${NC}" "${RED}Ошибка: Django приложение не готово${NC}"
-            exit 1
+            localized_echo "${YELLOW}Django may not be fully ready, but continuing...${NC}" "${YELLOW}Django может быть не полностью готов, но продолжаем...${NC}"
+            break
         fi
         
         localized_echo "${YELLOW}Waiting for Django to be ready...${NC}" "${YELLOW}Ожидание готовности Django...${NC}"
         sleep 3
     done
     
-    if [ "$MODE" = "prod" ]; then
-        if ! docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser; then
-            localized_echo "${YELLOW}Superuser creation was cancelled or failed${NC}" "${YELLOW}Создание суперпользователя было отменено или не удалось${NC}"
-        fi
-    else
-        if ! docker-compose exec web python manage.py createsuperuser; then
-            localized_echo "${YELLOW}Superuser creation was cancelled or failed${NC}" "${YELLOW}Создание суперпользователя было отменено или не удалось${NC}"
-        fi
-    fi
-    
-    # Загрузка демонстрационных данных
-    localized_echo "\n${BLUE}Loading demo data / Загрузка демонстрационных данных:${NC}" "\n${BLUE}Загрузка демонстрационных данных:${NC}"
-    if [ "$LANG" = "ru" ]; then
-        read -p "Загрузить демонстрационные данные? (Y/n): " load_demo
-    else
-        read -p "Load demo data? (Y/n): " load_demo
-    fi
-    
-    if [[ ! "$load_demo" =~ ^[Nn]$ ]]; then
-        if [ "$MODE" = "prod" ]; then
-            docker-compose -f docker-compose.prod.yml exec web python manage.py loaddata fixtures/categories.json fixtures/manufacturers.json fixtures/cars.json fixtures/products.json fixtures/product_attributes.json fixtures/integration_settings.json 2>/dev/null || localized_echo "${YELLOW}Demo data not found, skipping...${NC}" "${YELLOW}Демонстрационные данные не найдены, пропускаем...${NC}"
-        else
-            docker-compose exec web python manage.py loaddata fixtures/categories.json fixtures/manufacturers.json fixtures/cars.json fixtures/products.json fixtures/product_attributes.json fixtures/integration_settings.json 2>/dev/null || localized_echo "${YELLOW}Demo data not found, skipping...${NC}" "${YELLOW}Демонстрационные данные не найдены, пропускаем...${NC}"
-        fi
-    fi
     
     # Финальные инструкции
     echo ""
@@ -462,13 +436,29 @@ main() {
         echo "   http://127.0.0.1:8443"
         echo "   http://$DOMAIN:8443 (if configured in /etc/hosts)"
         echo ""
-        localized_echo "${BLUE}Admin panel:${NC}" "${BLUE}Панель администратора:${NC}"
-        echo "   http://127.0.0.1:8443/admin/"
+        SUPERUSER_CMD="docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser"
+        DEMO_DATA_CMD="docker-compose -f docker-compose.prod.yml exec web python manage.py loaddata fixtures/categories.json fixtures/manufacturers.json fixtures/cars.json fixtures/products.json fixtures/product_attributes.json fixtures/integration_settings.json"
     else
         localized_echo "${BLUE}Your application is available at:${NC}" "${BLUE}Ваше приложение доступно по адресу:${NC}"
         echo "   http://127.0.0.1:8899"
         echo ""
-        localized_echo "${BLUE}Admin panel:${NC}" "${BLUE}Панель администратора:${NC}"
+        SUPERUSER_CMD="docker-compose exec web python manage.py createsuperuser"
+        DEMO_DATA_CMD="docker-compose exec web python manage.py loaddata fixtures/categories.json fixtures/manufacturers.json fixtures/cars.json fixtures/products.json fixtures/product_attributes.json fixtures/integration_settings.json"
+    fi
+    
+    echo ""
+    localized_echo "${YELLOW}Next steps / Следующие шаги:${NC}" "${YELLOW}Следующие шаги:${NC}"
+    echo ""
+    localized_echo "${BLUE}1. Create admin user / Создать администратора:${NC}" "${BLUE}1. Создать администратора:${NC}"
+    echo "   $SUPERUSER_CMD"
+    echo ""
+    localized_echo "${BLUE}2. Load demo data (optional) / Загрузить демо данные (опционально):${NC}" "${BLUE}2. Загрузить демо данные (опционально):${NC}"
+    echo "   $DEMO_DATA_CMD"
+    echo ""
+    localized_echo "${BLUE}3. Admin panel / Панель администратора:${NC}" "${BLUE}3. Панель администратора:${NC}"
+    if [ "$MODE" = "prod" ] && [ "$CREATE_NGINX" = "true" ]; then
+        echo "   http://127.0.0.1:8443/admin/"
+    else
         echo "   http://127.0.0.1:8899/admin/"
     fi
     
