@@ -37,9 +37,27 @@ prompt_with_default() {
 prompt_password() {
     local prompt_text="$1"
     local result
-    read -s -p "$prompt_text: " result
-    echo ""
-    echo "$result"
+    local confirm_result
+    
+    while true; do
+        read -s -p "$prompt_text: " result
+        echo ""
+        
+        if [ -z "$result" ]; then
+            echo "Пароль не может быть пустым / Password cannot be empty"
+            continue
+        fi
+        
+        read -s -p "$(if [ "$LANG" = "ru" ]; then echo "Подтвердите пароль"; else echo "Confirm password"; fi): " confirm_result
+        echo ""
+        
+        if [ "$result" = "$confirm_result" ]; then
+            echo "$result"
+            break
+        else
+            echo "$(if [ "$LANG" = "ru" ]; then echo "Пароли не совпадают. Попробуйте снова."; else echo "Passwords do not match. Try again."; fi)"
+        fi
+    done
 }
 
 # Функция для выбора языка
@@ -221,6 +239,18 @@ main() {
     
     DB_NAME=$(localized_prompt "Database name" "Имя базы данных" "autoparts_shop")
     DB_USER=$(localized_prompt "Database user" "Пользователь базы данных" "postgres")
+    
+    # Валидация имени базы данных и пользователя
+    if [[ ! "$DB_NAME" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]]; then
+        localized_echo "${YELLOW}Warning: Database name should start with a letter and contain only letters, numbers, and underscores${NC}" "${YELLOW}Внимание: Имя базы данных должно начинаться с буквы и содержать только буквы, цифры и подчеркивания${NC}"
+        DB_NAME="autoparts_shop"
+    fi
+    
+    if [[ ! "$DB_USER" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]]; then
+        localized_echo "${YELLOW}Warning: Database user should start with a letter and contain only letters, numbers, and underscores${NC}" "${YELLOW}Внимание: Пользователь БД должен начинаться с буквы и содержать только буквы, цифры и подчеркивания${NC}"
+        DB_USER="postgres"
+    fi
+    
     DB_PASSWORD=$(prompt_password "$(if [ "$LANG" = "ru" ]; then echo "Пароль базы данных"; else echo "Database password"; fi)")
     
     # Настройка nginx
@@ -284,41 +314,48 @@ main() {
     # Создание .env файла
     localized_echo "\n${GREEN}Creating .env file...${NC}" "\n${GREEN}Создание .env файла...${NC}"
     
-    cat > .env << EOF
-# Общие настройки Django
-DEBUG=$DEBUG
-SECRET_KEY=$SECRET_KEY
-ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,$DOMAIN
-DOMAIN=$DOMAIN
-
-# Настройки базы данных
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=$DB_NAME
-DB_USER=$DB_USER
-DB_PASSWORD=$DB_PASSWORD
-DB_HOST=db
-DB_PORT=5432
-
-# Настройки для интеграции с 1С
-INTEGRATION_1C_TOKEN=$INTEGRATION_1C_TOKEN
-
-# Настройки безопасности
-SECURE_SSL_REDIRECT=$(if [ "$DEBUG" = "False" ]; then echo "True"; else echo "False"; fi)
-SESSION_COOKIE_SECURE=$(if [ "$DEBUG" = "False" ]; then echo "True"; else echo "False"; fi)
-CSRF_COOKIE_SECURE=$(if [ "$DEBUG" = "False" ]; then echo "True"; else echo "False"; fi)
-
-# Настройки для электронной почты
-EMAIL_BACKEND=$EMAIL_BACKEND
-EMAIL_HOST=$EMAIL_HOST
-EMAIL_PORT=$EMAIL_PORT
-EMAIL_USE_TLS=$EMAIL_USE_TLS
-EMAIL_HOST_USER=$EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD=$EMAIL_HOST_PASSWORD
-DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL
-
-# Максимальный размер загружаемых файлов (в байтах)
-MAX_UPLOAD_SIZE=5242880
-EOF
+    # Безопасное создание .env файла с экранированием специальных символов
+    {
+        echo "# Общие настройки Django"
+        echo "DEBUG=$DEBUG"
+        echo "SECRET_KEY='$SECRET_KEY'"
+        echo "ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,$DOMAIN"
+        echo "DOMAIN=$DOMAIN"
+        echo ""
+        echo "# Настройки базы данных"
+        echo "DB_ENGINE=django.db.backends.postgresql"
+        echo "DB_NAME=$DB_NAME"
+        echo "DB_USER=$DB_USER"
+        echo "DB_PASSWORD='$DB_PASSWORD'"
+        echo "DB_HOST=db"
+        echo "DB_PORT=5432"
+        echo ""
+        echo "# Настройки для интеграции с 1С"
+        echo "INTEGRATION_1C_TOKEN='$INTEGRATION_1C_TOKEN'"
+        echo ""
+        echo "# Настройки безопасности"
+        if [ "$DEBUG" = "False" ]; then
+            echo "SECURE_SSL_REDIRECT=True"
+            echo "SESSION_COOKIE_SECURE=True"
+            echo "CSRF_COOKIE_SECURE=True"
+        else
+            echo "SECURE_SSL_REDIRECT=False"
+            echo "SESSION_COOKIE_SECURE=False"
+            echo "CSRF_COOKIE_SECURE=False"
+        fi
+        echo ""
+        echo "# Настройки для электронной почты"
+        echo "EMAIL_BACKEND=$EMAIL_BACKEND"
+        echo "EMAIL_HOST=$EMAIL_HOST"
+        echo "EMAIL_PORT=$EMAIL_PORT"
+        echo "EMAIL_USE_TLS=$EMAIL_USE_TLS"
+        echo "EMAIL_HOST_USER=$EMAIL_HOST_USER"
+        echo "EMAIL_HOST_PASSWORD='$EMAIL_HOST_PASSWORD'"
+        echo "DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL"
+        echo ""
+        echo "# Максимальный размер загружаемых файлов (в байтах)"
+        echo "MAX_UPLOAD_SIZE=5242880"
+    } > .env
     
     # Создание nginx конфигурации если нужно
     if [ "$CREATE_NGINX" = "true" ]; then
