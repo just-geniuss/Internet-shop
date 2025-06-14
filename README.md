@@ -155,6 +155,21 @@ lsof -i :8443  # для продакшна
 kill PID
 ```
 
+**Проблема:** Ошибка `ImportError: failed to find libmagic`
+**Решение:** Эта ошибка возникает если в системе отсутствует библиотека libmagic. В Dockerfile уже добавлена установка libmagic1, поэтому пересоберите контейнеры:
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**Проблема:** Контейнеры не запускаются или падают при старте
+**Решение:** Проверьте логи контейнеров:
+```bash
+docker-compose logs web
+docker-compose logs db
+```
+
 ### База данных
 
 **Проблема:** Ошибки миграций

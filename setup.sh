@@ -331,25 +331,72 @@ EOF
     
     if [ "$MODE" = "prod" ]; then
         docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
-        docker-compose -f docker-compose.prod.yml up --build -d
+        if ! docker-compose -f docker-compose.prod.yml up --build -d; then
+            localized_echo "${RED}Error: Failed to start containers${NC}" "${RED}Ошибка: Не удалось запустить контейнеры${NC}"
+            exit 1
+        fi
         COMPOSE_FILE="docker-compose.prod.yml"
     else
         docker-compose down 2>/dev/null || true
-        docker-compose up --build -d
+        if ! docker-compose up --build -d; then
+            localized_echo "${RED}Error: Failed to start containers${NC}" "${RED}Ошибка: Не удалось запустить контейнеры${NC}"
+            exit 1
+        fi
         COMPOSE_FILE="docker-compose.yml"
     fi
     
     # Ожидание запуска контейнеров
     localized_echo "${YELLOW}Waiting for containers to start...${NC}" "${YELLOW}Ожидание запуска контейнеров...${NC}"
-    sleep 10
+    
+    # Проверка состояния контейнеров
+    for i in {1..30}; do
+        if docker-compose -f $COMPOSE_FILE ps | grep -q "Up"; then
+            localized_echo "${GREEN}Containers are running${NC}" "${GREEN}Контейнеры запущены${NC}"
+            break
+        fi
+        
+        if [ $i -eq 30 ]; then
+            localized_echo "${RED}Error: Containers failed to start properly${NC}" "${RED}Ошибка: Контейнеры не запустились правильно${NC}"
+            localized_echo "${YELLOW}Checking logs...${NC}" "${YELLOW}Проверка логов...${NC}"
+            docker-compose -f $COMPOSE_FILE logs web
+            exit 1
+        fi
+        
+        sleep 2
+    done
     
     # Создание суперпользователя
     localized_echo "\n${BLUE}Creating superuser / Создание суперпользователя:${NC}" "\n${BLUE}Создание суперпользователя:${NC}"
     
+    # Проверка что веб контейнер готов принимать команды
+    for i in {1..10}; do
+        if [ "$MODE" = "prod" ]; then
+            if docker-compose -f docker-compose.prod.yml exec -T web python manage.py check --deploy 2>/dev/null; then
+                break
+            fi
+        else
+            if docker-compose exec -T web python manage.py check 2>/dev/null; then
+                break
+            fi
+        fi
+        
+        if [ $i -eq 10 ]; then
+            localized_echo "${RED}Error: Django application is not ready${NC}" "${RED}Ошибка: Django приложение не готово${NC}"
+            exit 1
+        fi
+        
+        localized_echo "${YELLOW}Waiting for Django to be ready...${NC}" "${YELLOW}Ожидание готовности Django...${NC}"
+        sleep 3
+    done
+    
     if [ "$MODE" = "prod" ]; then
-        docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
+        if ! docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser; then
+            localized_echo "${YELLOW}Superuser creation was cancelled or failed${NC}" "${YELLOW}Создание суперпользователя было отменено или не удалось${NC}"
+        fi
     else
-        docker-compose exec web python manage.py createsuperuser
+        if ! docker-compose exec web python manage.py createsuperuser; then
+            localized_echo "${YELLOW}Superuser creation was cancelled or failed${NC}" "${YELLOW}Создание суперпользователя было отменено или не удалось${NC}"
+        fi
     fi
     
     # Загрузка демонстрационных данных
